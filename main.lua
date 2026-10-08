@@ -1,4 +1,4 @@
--- LocalScript: ĐỒNG M NGUYÊN [ V1.0 ] - Professional Hub (Ảnh 2 Style)
+-- LocalScript: ĐỒNG M NGUYÊN [ V1.0 ] - Universal All-In-One Hub
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
@@ -24,36 +24,32 @@ pcall(function()
 end)
 
 ---------------------------------------------------------
--- 2. HÀM QUÉT CẤP ĐỘ (LEVEL) THÔNG MINH (KHẮC PHỤC LỖI N/A)
+-- 2. HÀM QUÉT CẤP ĐỘ (LEVEL) SIÊU THÔNG MINH (SỬA LỖI N/A)
 ---------------------------------------------------------
 local function getLevel(player)
-    if not player then return "N/A" end
+    if not player then return nil end
     
-    -- Quét Attribute
-    local attrLevel = player:GetAttribute("Level") or player:GetAttribute("Lvl") or player:GetAttribute("LevelValue")
-    if attrLevel then return tostring(attrLevel) end
+    -- Tầng 1: Quét Attribute
+    for _, attr in ipairs({"Level", "Lvl", "LVL", "Cấp", "Stage"}) do
+        local val = player:GetAttribute(attr)
+        if val then return tostring(val) end
+    end
     
-    -- Thư mục chứa thông tin phổ biến
-    local searchFolders = {
-        player:FindFirstChild("leaderstats"),
-        player:FindFirstChild("Data"),
-        player:FindFirstChild("PlayerData"),
-        player:FindFirstChild("DataFolder"),
-        player:FindFirstChild("Stats")
-    }
-    
-    for _, folder in pairs(searchFolders) do
+    -- Tầng 2: Quét thư mục chứa dữ liệu (leaderstats, Data, PlayerData, Stats)
+    local folders = {"leaderstats", "Data", "PlayerData", "DataFolder", "Stats", "PlayerStats"}
+    for _, fName in ipairs(folders) do
+        local folder = player:FindFirstChild(fName)
         if folder then
             for _, child in pairs(folder:GetChildren()) do
                 local nameLower = string.lower(child.Name)
-                if (nameLower:find("level") or nameLower:find("lvl")) and (child:IsA("ValueBase") or child:IsA("NumberValue") or child:IsA("IntValue") or child:IsA("StringValue")) then
+                if (nameLower:find("level") or nameLower:find("lvl") or nameLower:find("cap")) and (child:IsA("ValueBase") or child:IsA("NumberValue") or child:IsA("IntValue") or child:IsA("StringValue")) then
                     return tostring(child.Value)
                 end
             end
         end
     end
     
-    -- Quét toàn bộ con trực tiếp trong Player
+    -- Tầng 3: Quét con trực tiếp trong Player
     for _, child in pairs(player:GetChildren()) do
         local nameLower = string.lower(child.Name)
         if (nameLower:find("level") or nameLower:find("lvl")) and (child:IsA("ValueBase") or child:IsA("NumberValue") or child:IsA("IntValue")) then
@@ -61,7 +57,23 @@ local function getLevel(player)
         end
     end
     
-    return "N/A"
+    -- Tầng 4: Quét GUI/Overhead trên đầu nhân vật (Chuyên dụng cho Blox Fruits & Anime Game)
+    if player.Character then
+        local head = player.Character:FindFirstChild("Head") or player.Character:FindFirstChild("HumanoidRootPart")
+        if head then
+            for _, gui in pairs(head:GetDescendants()) do
+                if gui:IsA("TextLabel") or gui:IsA("TextBox") then
+                    local txt = gui.Text
+                    local lvlNum = txt:match("[L|l][V|v]%.?%s*(%d+)") or txt:match("[L|l]evel%s*(%d+)") or txt:match("%[(%d+)%]")
+                    if lvlNum then
+                        return lvlNum
+                    end
+                end
+            end
+        end
+    end
+    
+    return nil -- Không tìm thấy cấp độ thì ẩn đi chứ không hiện N/A
 end
 
 ---------------------------------------------------------
@@ -75,19 +87,19 @@ local Config = {
 }
 
 ---------------------------------------------------------
--- 4. TẠO GIAO DIỆN CHÍNH (GUI PHONG CÁCH ÁNH 2)
+-- 4. TẠO GIAO DIỆN CHÍNH (MAIN FRAME)
 ---------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "DongMNguyenHub_V2"
+ScreenGui.Name = "DongMNnguyenHub_V3"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
 -- Main Frame
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 520, 0, 320)
-MainFrame.Position = UDim2.new(0.5, -260, 0.5, -160)
-MainFrame.BackgroundColor3 = Color3.fromRGB(18, 20, 26)
+MainFrame.Size = UDim2.new(0, 380, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -190, 0.4, -200)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 18, 26)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Parent = ScreenGui
@@ -97,14 +109,14 @@ MainCorner.CornerRadius = UDim.new(0, 10)
 MainCorner.Parent = MainFrame
 
 local MainStroke = Instance.new("UIStroke")
-MainStroke.Color = Color3.fromRGB(0, 180, 255)
-MainStroke.Thickness = 1.2
+MainStroke.Color = Color3.fromRGB(0, 200, 255)
+MainStroke.Thickness = 1.5
 MainStroke.Parent = MainFrame
 
 -- Header Bar
 local Header = Instance.new("Frame")
-Header.Size = UDim2.new(1, 0, 0, 35)
-Header.BackgroundColor3 = Color3.fromRGB(12, 14, 18)
+Header.Size = UDim2.new(1, 0, 0, 38)
+Header.BackgroundColor3 = Color3.fromRGB(22, 27, 38)
 Header.BorderSizePixel = 0
 Header.Parent = MainFrame
 
@@ -113,21 +125,21 @@ HeaderCorner.CornerRadius = UDim.new(0, 10)
 HeaderCorner.Parent = Header
 
 local TitleLabel = Instance.new("TextLabel")
-TitleLabel.Size = UDim2.new(0.6, 0, 1, 0)
+TitleLabel.Size = UDim2.new(0.7, 0, 1, 0)
 TitleLabel.Position = UDim2.new(0, 12, 0, 0)
 TitleLabel.BackgroundTransparency = 1
 TitleLabel.Text = "ĐỒNG M NGUYÊN [ V1.0 ]"
-TitleLabel.TextColor3 = Color3.fromRGB(0, 220, 255)
+TitleLabel.TextColor3 = Color3.fromRGB(0, 230, 255)
 TitleLabel.Font = Enum.Font.SourceSansBold
-TitleLabel.TextSize = 15
+TitleLabel.TextSize = 16
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 TitleLabel.Parent = Header
 
--- Nút Thu Nhỏ (-) & Đóng (X)
+-- Nút Đóng (X)
 local CloseBtn = Instance.new("TextButton")
-CloseBtn.Size = UDim2.new(0, 24, 0, 24)
-CloseBtn.Position = UDim2.new(1, -30, 0, 5)
-CloseBtn.BackgroundColor3 = Color3.fromRGB(220, 50, 60)
+CloseBtn.Size = UDim2.new(0, 26, 0, 26)
+CloseBtn.Position = UDim2.new(1, -32, 0, 6)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(230, 50, 60)
 CloseBtn.Text = "X"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseBtn.Font = Enum.Font.SourceSansBold
@@ -135,29 +147,15 @@ CloseBtn.TextSize = 13
 CloseBtn.Parent = Header
 
 local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0, 5)
+CloseCorner.CornerRadius = UDim.new(0, 6)
 CloseCorner.Parent = CloseBtn
 
-local MinimizeBtn = Instance.new("TextButton")
-MinimizeBtn.Size = UDim2.new(0, 24, 0, 24)
-MinimizeBtn.Position = UDim2.new(1, -58, 0, 5)
-MinimizeBtn.BackgroundColor3 = Color3.fromRGB(45, 52, 68)
-MinimizeBtn.Text = "-"
-MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-MinimizeBtn.Font = Enum.Font.SourceSansBold
-MinimizeBtn.TextSize = 15
-MinimizeBtn.Parent = Header
-
-local MinCorner = Instance.new("UICorner")
-MinCorner.CornerRadius = UDim.new(0, 5)
-MinCorner.Parent = MinimizeBtn
-
--- Nút Tròn ĐMN Nổi Đẹp
+-- Nút Tròn ĐMN Nổi Bật
 local CircleBtn = Instance.new("TextButton")
 CircleBtn.Name = "CircleBtn_DMN"
 CircleBtn.Size = UDim2.new(0, 55, 0, 55)
-CircleBtn.Position = UDim2.new(0.02, 0, 0.2, 0)
-CircleBtn.BackgroundColor3 = Color3.fromRGB(15, 22, 32)
+CircleBtn.Position = UDim2.new(0.03, 0, 0.25, 0)
+CircleBtn.BackgroundColor3 = Color3.fromRGB(15, 25, 40)
 CircleBtn.Text = "ĐMN"
 CircleBtn.TextColor3 = Color3.fromRGB(0, 230, 255)
 CircleBtn.Font = Enum.Font.SourceSansBold
@@ -176,12 +174,12 @@ CircleStroke.Thickness = 2
 CircleStroke.Parent = CircleBtn
 
 ---------------------------------------------------------
--- 5. THÔNG BÁO CHẠY NGANG & GAME DETECT
+-- 5. HIỂN THỊ GAME ĐANG CHƠI & THÔNG BÁO CHẠY NGANG
 ---------------------------------------------------------
 local TopInfoBar = Instance.new("Frame")
-TopInfoBar.Size = UDim2.new(1, -20, 0, 26)
-TopInfoBar.Position = UDim2.new(0, 10, 0, 42)
-TopInfoBar.BackgroundColor3 = Color3.fromRGB(25, 30, 40)
+TopInfoBar.Size = UDim2.new(0.92, 0, 0, 28)
+TopInfoBar.Position = UDim2.new(0.04, 0, 0.11, 0)
+TopInfoBar.BackgroundColor3 = Color3.fromRGB(25, 30, 42)
 TopInfoBar.Parent = MainFrame
 
 local TopInfoCorner = Instance.new("UICorner")
@@ -189,7 +187,7 @@ TopInfoCorner.CornerRadius = UDim.new(0, 6)
 TopInfoCorner.Parent = TopInfoBar
 
 local GameText = Instance.new("TextLabel")
-GameText.Size = UDim2.new(0.38, 0, 1, 0)
+GameText.Size = UDim2.new(0.42, 0, 1, 0)
 GameText.Position = UDim2.new(0, 8, 0, 0)
 GameText.BackgroundTransparency = 1
 GameText.Text = "🎮 " .. string.upper(currentGameName)
@@ -199,10 +197,10 @@ GameText.TextSize = 12
 GameText.TextXAlignment = Enum.TextXAlignment.Left
 GameText.Parent = TopInfoBar
 
--- Khung chứa thông báo chạy
+-- Khung thông báo chữ chạy
 local MarqueeFrame = Instance.new("Frame")
-MarqueeFrame.Size = UDim2.new(0.6, 0, 1, 0)
-MarqueeFrame.Position = UDim2.new(0.4, 0, 0, 0)
+MarqueeFrame.Size = UDim2.new(0.55, 0, 1, 0)
+MarqueeFrame.Position = UDim2.new(0.45, 0, 0, 0)
 MarqueeFrame.BackgroundTransparency = 1
 MarqueeFrame.ClipsDescendants = true
 MarqueeFrame.Parent = TopInfoBar
@@ -211,7 +209,7 @@ local NoticeText = Instance.new("TextLabel")
 NoticeText.Size = UDim2.new(0, 600, 1, 0)
 NoticeText.Position = UDim2.new(1, 0, 0, 0)
 NoticeText.BackgroundTransparency = 1
-NoticeText.Text = "📢 BẠN ĐÃ KÍCH THÀNH CÔNG PHIÊN BẢN MỚI NHẤT                "
+NoticeText.Text = "📢 THÔNG BÁO: BẠN ĐÃ KÍCH THÀNH CÔNG PHIÊN BẢN MỚI NHẤT                "
 NoticeText.TextColor3 = Color3.fromRGB(0, 255, 170)
 NoticeText.Font = Enum.Font.SourceSansBold
 NoticeText.TextSize = 12
@@ -228,173 +226,93 @@ RunService.RenderStepped:Connect(function()
 end)
 
 ---------------------------------------------------------
--- 6. DANH MỤC SIDEBAR VÀ TRANG NỘI DUNG (GIỐNG ÁNH 2)
+-- 6. KHUNG CUỘN CHÍNH CHỨA TẤT CẢ TÍNH NĂNG (SCROLL)
 ---------------------------------------------------------
-local Sidebar = Instance.new("Frame")
-Sidebar.Size = UDim2.new(0, 140, 1, -80)
-Sidebar.Position = UDim2.new(0, 10, 0, 74)
-Sidebar.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
-Sidebar.Parent = MainFrame
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Size = UDim2.new(0.92, 0, 0.78, 0)
+ScrollFrame.Position = UDim2.new(0.04, 0, 0.2, 0)
+ScrollFrame.BackgroundTransparency = 1
+ScrollFrame.ScrollBarThickness = 4
+ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(0, 200, 255)
+ScrollFrame.Parent = MainFrame
 
-local SideCorner = Instance.new("UICorner")
-SideCorner.CornerRadius = UDim.new(0, 8)
-SideCorner.Parent = Sidebar
+local UIList = Instance.new("UIListLayout")
+UIList.SortOrder = Enum.SortOrder.LayoutOrder
+UIList.Padding = UDim.new(0, 10)
+UIList.Parent = ScrollFrame
 
-local ContentArea = Instance.new("Frame")
-ContentArea.Size = UDim2.new(1, -165, 1, -80)
-ContentArea.Position = UDim2.new(0, 155, 0, 74)
-ContentArea.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
-ContentArea.Parent = MainFrame
+UIList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UIList.AbsoluteContentSize.Y + 15)
+end)
 
-local ContentCorner = Instance.new("UICorner")
-ContentCorner.CornerRadius = UDim.new(0, 8)
-ContentCorner.Parent = ContentArea
-
--- Quản lý Tabs
-local Tabs = {}
-local TabButtons = {}
-
-local function createTab(name, icon)
-    local page = Instance.new("ScrollingFrame")
-    page.Size = UDim2.new(1, -12, 1, -12)
-    page.Position = UDim2.new(0, 6, 0, 6)
-    page.BackgroundTransparency = 1
-    page.ScrollBarThickness = 3
-    page.ScrollBarImageColor3 = Color3.fromRGB(0, 180, 255)
-    page.Visible = false
-    page.Parent = ContentArea
-    
-    local listLayout = Instance.new("UIListLayout")
-    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    listLayout.Padding = UDim.new(0, 8)
-    listLayout.Parent = page
-    
-    Tabs[name] = page
-    
+-- Hàm Tạo Button Toggle On/Off
+local function createToggleButton(title, defaultState, callback)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.9, 0, 0, 32)
-    btn.Position = UDim2.new(0.05, 0, 0, 0)
-    btn.BackgroundColor3 = Color3.fromRGB(32, 38, 52)
-    btn.Text = "  " .. icon .. "  " .. name
-    btn.TextColor3 = Color3.fromRGB(170, 185, 205)
+    btn.Size = UDim2.new(1, -6, 0, 42)
+    btn.BackgroundColor3 = defaultState and Color3.fromRGB(40, 180, 80) or Color3.fromRGB(35, 42, 58)
+    btn.Text = title .. (defaultState and ": ON" or ": OFF")
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.SourceSansBold
-    btn.TextSize = 13
-    btn.TextXAlignment = Enum.TextXAlignment.Left
-    btn.Parent = Sidebar
-    
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 6)
-    btnCorner.Parent = btn
-    
-    TabButtons[name] = btn
-    
-    btn.MouseButton1Click:Connect(function()
-        for tabName, tabFrame in pairs(Tabs) do
-            tabFrame.Visible = (tabName == name)
-            TabButtons[tabName].BackgroundColor3 = (tabName == name) and Color3.fromRGB(0, 150, 220) or Color3.fromRGB(32, 38, 52)
-            TabButtons[tabName].TextColor3 = (tabName == name) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(170, 185, 205)
-        end
-    end)
-    
-    return page
-end
-
--- Tạo các Tab
-local TabESP = createTab("Định Vị (ESP)", "🎯")
-local TabOptimize = createTab("Tối Ưu / FPS", "⚡")
-local TabServer = createTab("Máy Chủ", "🌐")
-
--- Mặc định chọn Tab 1
-Tabs["Định Vị (ESP)"].Visible = true
-TabButtons["Định Vị (ESP)"].BackgroundColor3 = Color3.fromRGB(0, 150, 220)
-TabButtons["Định Vị (ESP)"].TextColor3 = Color3.fromRGB(255, 255, 255)
-
----------------------------------------------------------
--- 7. TẠO CÁC NÚT TÍNH NĂNG TRONG TAB (CÔNG TẮC / SLIDER)
----------------------------------------------------------
-local function createToggle(parent, title, defaultState, callback)
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, 0, 0, 38)
-    frame.BackgroundColor3 = Color3.fromRGB(18, 22, 30)
-    frame.Parent = parent
+    btn.TextSize = 14
+    btn.Parent = ScrollFrame
     
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
-    corner.Parent = frame
-    
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0.7, 0, 1, 0)
-    label.Position = UDim2.new(0, 10, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = title
-    label.TextColor3 = Color3.fromRGB(220, 230, 245)
-    label.Font = Enum.Font.SourceSans
-    label.TextSize = 13
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = frame
-    
-    local toggleBtn = Instance.new("TextButton")
-    toggleBtn.Size = UDim2.new(0, 42, 0, 22)
-    toggleBtn.Position = UDim2.new(1, -50, 0.5, -11)
-    toggleBtn.BackgroundColor3 = defaultState and Color3.fromRGB(0, 180, 100) or Color3.fromRGB(60, 65, 80)
-    toggleBtn.Text = defaultState and "ON" or "OFF"
-    toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    toggleBtn.Font = Enum.Font.SourceSansBold
-    toggleBtn.TextSize = 11
-    toggleBtn.Parent = frame
-    
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 11)
-    btnCorner.Parent = toggleBtn
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = btn
     
     local state = defaultState
-    toggleBtn.MouseButton1Click:Connect(function()
+    btn.MouseButton1Click:Connect(function()
         state = not state
-        toggleBtn.BackgroundColor3 = state and Color3.fromRGB(0, 180, 100) or Color3.fromRGB(60, 65, 80)
-        toggleBtn.Text = state and "ON" or "OFF"
+        btn.BackgroundColor3 = state and Color3.fromRGB(40, 180, 80) or Color3.fromRGB(35, 42, 58)
+        btn.Text = title .. (state and ": ON" or ": OFF")
         callback(state)
     end)
+    return btn
 end
 
--- Tab 1: ESP
-createToggle(TabESP, "Định vị Người Chơi (ESP + Level)", Config.ESP_Enabled, function(val)
+---------------------------------------------------------
+-- 7. THÊM ĐẦY ĐỦ TÍNH NĂNG VÀO TRANG CHÍNH
+---------------------------------------------------------
+
+-- 1. Nút ESP
+createToggleButton("🎯 Định vị Người Chơi (ESP)", Config.ESP_Enabled, function(val)
     Config.ESP_Enabled = val
 end)
 
--- Ô nhập Khoảng cách ESP
-local DistFrame = Instance.new("Frame")
-DistFrame.Size = UDim2.new(1, 0, 0, 38)
-DistFrame.BackgroundColor3 = Color3.fromRGB(18, 22, 30)
-DistFrame.Parent = TabESP
+-- 2. Ô Chỉnh Tầm Nhìn
+local DistBoxFrame = Instance.new("Frame")
+DistBoxFrame.Size = UDim2.new(1, -6, 0, 38)
+DistBoxFrame.BackgroundColor3 = Color3.fromRGB(24, 30, 42)
+DistBoxFrame.Parent = ScrollFrame
 
 local DistCorner = Instance.new("UICorner")
-DistCorner.CornerRadius = UDim.new(0, 6)
-DistCorner.Parent = DistFrame
+DistCorner.CornerRadius = UDim.new(0, 8)
+DistCorner.Parent = DistBoxFrame
 
 local DistLabel = Instance.new("TextLabel")
-DistLabel.Size = UDim2.new(0.6, 0, 1, 0)
+DistLabel.Size = UDim2.new(0.65, 0, 1, 0)
 DistLabel.Position = UDim2.new(0, 10, 0, 0)
 DistLabel.BackgroundTransparency = 1
-DistLabel.Text = "Tầm nhìn ESP (50 - 20000 studs):"
-DistLabel.TextColor3 = Color3.fromRGB(220, 230, 245)
+DistLabel.Text = "📏 Tầm nhìn (50 - 20000 studs):"
+DistLabel.TextColor3 = Color3.fromRGB(200, 215, 235)
 DistLabel.Font = Enum.Font.SourceSans
-DistLabel.TextSize = 12
+DistLabel.TextSize = 13
 DistLabel.TextXAlignment = Enum.TextXAlignment.Left
-DistLabel.Parent = DistFrame
+DistLabel.Parent = DistBoxFrame
 
 local DistBox = Instance.new("TextBox")
-DistBox.Size = UDim2.new(0, 70, 0, 24)
-DistBox.Position = UDim2.new(1, -80, 0.5, -12)
-DistBox.BackgroundColor3 = Color3.fromRGB(30, 38, 52)
+DistBox.Size = UDim2.new(0, 80, 0, 26)
+DistBox.Position = UDim2.new(1, -90, 0.5, -13)
+DistBox.BackgroundColor3 = Color3.fromRGB(35, 45, 62)
 DistBox.Text = tostring(Config.MaxDistance)
 DistBox.TextColor3 = Color3.fromRGB(0, 230, 255)
 DistBox.Font = Enum.Font.SourceSansBold
-DistBox.TextSize = 13
-DistBox.Parent = DistFrame
+DistBox.TextSize = 14
+DistBox.Parent = DistBoxFrame
 
-local DistBoxCorner = Instance.new("UICorner")
-DistBoxCorner.CornerRadius = UDim.new(0, 4)
-DistBoxCorner.Parent = DistBox
+local BoxCorner = Instance.new("UICorner")
+BoxCorner.CornerRadius = UDim.new(0, 5)
+BoxCorner.Parent = DistBox
 
 DistBox.FocusLost:Connect(function()
     local val = tonumber(DistBox.Text)
@@ -406,8 +324,8 @@ DistBox.FocusLost:Connect(function()
     end
 end)
 
--- Tab 2: Optimize
-createToggle(TabOptimize, "Giảm Lag Vật Liệu (45%)", Config.LagReduced, function(val)
+-- 3. Nút Giảm Lag 45%
+createToggleButton("⚡ Giảm Lag Vật Liệu (45%)", Config.LagReduced, function(val)
     Config.LagReduced = val
     if val then
         Lighting.GlobalShadows = false
@@ -423,7 +341,8 @@ createToggle(TabOptimize, "Giảm Lag Vật Liệu (45%)", Config.LagReduced, fu
     end
 end)
 
-createToggle(TabOptimize, "Mở Khóa 300 FPS & Optimize", Config.FPSBoosted, function(val)
+-- 4. Nút Tăng 300 FPS
+createToggleButton("🚀 Mở Khóa 300 FPS & Max Optimize", Config.FPSBoosted, function(val)
     Config.FPSBoosted = val
     if val then
         if setfpscap then setfpscap(300) end
@@ -433,18 +352,18 @@ createToggle(TabOptimize, "Mở Khóa 300 FPS & Optimize", Config.FPSBoosted, fu
     end
 end)
 
--- Tab 3: Server
+-- 5. Nút Rejoin Server
 local RejoinBtn = Instance.new("TextButton")
-RejoinBtn.Size = UDim2.new(1, 0, 0, 36)
-RejoinBtn.BackgroundColor3 = Color3.fromRGB(30, 80, 160)
+RejoinBtn.Size = UDim2.new(1, -6, 0, 42)
+RejoinBtn.BackgroundColor3 = Color3.fromRGB(30, 90, 180)
 RejoinBtn.Text = "🔄 Vào lại Server hiện tại (Rejoin)"
 RejoinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 RejoinBtn.Font = Enum.Font.SourceSansBold
-RejoinBtn.TextSize = 13
-RejoinBtn.Parent = TabServer
+RejoinBtn.TextSize = 14
+RejoinBtn.Parent = ScrollFrame
 
 local RejoinCorner = Instance.new("UICorner")
-RejoinCorner.CornerRadius = UDim.new(0, 6)
+RejoinCorner.CornerRadius = UDim.new(0, 8)
 RejoinCorner.Parent = RejoinBtn
 
 RejoinBtn.MouseButton1Click:Connect(function()
@@ -486,11 +405,10 @@ local function toggleUI()
 end
 
 CloseBtn.MouseButton1Click:Connect(toggleUI)
-MinimizeBtn.MouseButton1Click:Connect(toggleUI)
 CircleBtn.MouseButton1Click:Connect(toggleUI)
 
 ---------------------------------------------------------
--- 9. CHẠY ESP ĐỊNH VỊ HIỂN THỊ TÊN + CẤP ĐỘ + KHOẢNG CÁCH
+-- 9. LOGIC HIỂN THỊ ESP ĐỊNH VỊ CHÍNH XÁC
 ---------------------------------------------------------
 local function createESP(player)
     if player == LocalPlayer then return end
@@ -547,9 +465,13 @@ RunService.RenderStepped:Connect(function()
                     local dist = math.floor((myRoot.Position - p.Character.HumanoidRootPart.Position).Magnitude)
                     if dist <= Config.MaxDistance then
                         tag.Enabled = true
-                        local levelStr = getLevel(p)
-                        tag.Info.Text = string.format("[%s]\nCấp: %s | KC: %d Studs", p.DisplayName, levelStr, dist)
-    else
+                        local lvl = getLevel(p)
+                        if lvl then
+                            tag.Info.Text = string.format("[%s]\nCấp: %s | KC: %d Studs", p.DisplayName, lvl, dist)
+                        else
+                            tag.Info.Text = string.format("[%s]\nKC: %d Studs", p.DisplayName, dist)
+                        end
+                    else
                         tag.Enabled = false
                     end
                 else
