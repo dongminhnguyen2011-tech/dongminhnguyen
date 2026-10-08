@@ -1,4 +1,4 @@
--- LocalScript: ĐỒNG M NGUYÊN [ V1.0 ] - Ultra 1000 FPS & Realtime FPS Display
+-- LocalScript: ĐỒNG M NGUYÊN [ V1.0 ] - Camera Ultra Smooth & 1000 FPS
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
@@ -25,21 +25,22 @@ end)
 
 local Config = {
     LagReduced = false,
-    FPSBoosted = false
+    FPSBoosted = false,
+    CamSmoothEnabled = false
 }
 
 ---------------------------------------------------------
--- 2. KHỞI TẠO GIAO DIỆN CHÍNH
+-- 2. KHỞI TẠO GIAO DIỆN CHÍNH (ĐÃ TĂNG CHIỀU CAO CHỨA 3 NÚT)
 ---------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "DongMNnguyen_FPS_Counter_Hub"
+ScreenGui.Name = "DongMNnguyen_Ultimate_Hub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 340, 0, 245)
-MainFrame.Position = UDim2.new(0.5, -170, 0.4, -122)
+MainFrame.Size = UDim2.new(0, 340, 0, 290)
+MainFrame.Position = UDim2.new(0.5, -170, 0.4, -145)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 18, 26)
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
@@ -94,10 +95,9 @@ CloseCorner.Parent = CloseBtn
 ---------------------------------------------------------
 -- 3. KHUNG HIỂN THỊ TÊN GAME & KHUNG ĐO FPS THỜI GIAN THỰC
 ---------------------------------------------------------
--- Khung Tên Game
 local GameLabelFrame = Instance.new("Frame")
-GameLabelFrame.Size = UDim2.new(0.9, 0, 0, 26)
-GameLabelFrame.Position = UDim2.new(0.05, 0, 0.18, 0)
+GameLabelFrame.Size = UDim2.new(0.9, 0, 0, 24)
+GameLabelFrame.Position = UDim2.new(0.05, 0, 0.15, 0)
 GameLabelFrame.BackgroundColor3 = Color3.fromRGB(24, 30, 42)
 GameLabelFrame.Parent = MainFrame
 
@@ -112,14 +112,14 @@ GameText.BackgroundTransparency = 1
 GameText.Text = "🎮 GAME: " .. string.upper(currentGameName)
 GameText.TextColor3 = Color3.fromRGB(255, 200, 80)
 GameText.Font = Enum.Font.SourceSansBold
-GameText.TextSize = 12
+GameText.TextSize = 11
 GameText.TextXAlignment = Enum.TextXAlignment.Left
 GameText.Parent = GameLabelFrame
 
 -- Khung Đo FPS Realtime
 local FPSFrame = Instance.new("Frame")
-FPSFrame.Size = UDim2.new(0.9, 0, 0, 28)
-FPSFrame.Position = UDim2.new(0.05, 0, 0.31, 0)
+FPSFrame.Size = UDim2.new(0.9, 0, 0, 26)
+FPSFrame.Position = UDim2.new(0.05, 0, 0.25, 0)
 FPSFrame.BackgroundColor3 = Color3.fromRGB(20, 28, 40)
 FPSFrame.Parent = MainFrame
 
@@ -138,10 +138,10 @@ FPSText.BackgroundTransparency = 1
 FPSText.Text = "⚡ TỐC ĐỘ GAME: 0 FPS"
 FPSText.TextColor3 = Color3.fromRGB(0, 255, 150)
 FPSText.Font = Enum.Font.SourceSansBold
-FPSText.TextSize = 13
+FPSText.TextSize = 12
 FPSText.Parent = FPSFrame
 
--- Logic Tính Khung Hình FPS Chính Xác
+-- Tính FPS
 local frameCount = 0
 local lastTime = os.clock()
 
@@ -153,11 +153,11 @@ RunService.RenderStepped:Connect(function()
         FPSText.Text = "⚡ TỐC ĐỘ GAME: " .. tostring(fps) .. " FPS"
         
         if fps >= 60 then
-            FPSText.TextColor3 = Color3.fromRGB(0, 255, 150) -- Xanh lá (Mượt)
+            FPSText.TextColor3 = Color3.fromRGB(0, 255, 150)
         elseif fps >= 30 then
-            FPSText.TextColor3 = Color3.fromRGB(255, 200, 0) -- Vàng (Trung bình)
+            FPSText.TextColor3 = Color3.fromRGB(255, 200, 0)
         else
-            FPSText.TextColor3 = Color3.fromRGB(255, 60, 60)  -- Đỏ (Lag)
+            FPSText.TextColor3 = Color3.fromRGB(255, 60, 60)
         end
         
         frameCount = 0
@@ -166,7 +166,7 @@ RunService.RenderStepped:Connect(function()
 end)
 
 ---------------------------------------------------------
--- 4. NÚT TRÒN ĐMN (HIỆN KHI ẨN MENU)
+-- 4. KHUNG CHỨA CÁC NÚT TÍNH NĂNG
 ---------------------------------------------------------
 local CircleBtn = Instance.new("TextButton")
 CircleBtn.Name = "CircleBtn_DMN"
@@ -191,24 +191,24 @@ CircleStroke.Thickness = 2
 CircleStroke.Parent = CircleBtn
 
 local Container = Instance.new("Frame")
-Container.Size = UDim2.new(0.9, 0, 0.52, 0)
-Container.Position = UDim2.new(0.05, 0, 0.45, 0)
+Container.Size = UDim2.new(0.9, 0, 0.6, 0)
+Container.Position = UDim2.new(0.05, 0, 0.36, 0)
 Container.BackgroundTransparency = 1
 Container.Parent = MainFrame
 
 local UIList = Instance.new("UIListLayout")
 UIList.SortOrder = Enum.SortOrder.LayoutOrder
-UIList.Padding = UDim.new(0, 8)
+UIList.Padding = UDim.new(0, 6)
 UIList.Parent = Container
 
 local function createToggleButton(title, defaultState, callback)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 0, 38)
+    btn.Size = UDim2.new(1, 0, 0, 36)
     btn.BackgroundColor3 = defaultState and Color3.fromRGB(40, 180, 80) or Color3.fromRGB(35, 42, 58)
     btn.Text = title .. (defaultState and ": ON" or ": OFF")
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.SourceSansBold
-    btn.TextSize = 13
+    btn.TextSize = 12
     btn.Parent = Container
     
     local corner = Instance.new("UICorner")
@@ -227,7 +227,7 @@ local function createToggleButton(title, defaultState, callback)
 end
 
 ---------------------------------------------------------
--- CHỨC NĂNG 1: GIẢM LAG (XÓA & KHÔI PHỤC 100% ĐỒ HỌA)
+-- CHỨC NĂNG 1: GIẢM LAG TỔNG THỂ
 ---------------------------------------------------------
 createToggleButton("⚡ Giảm lag (Bật xóa / Tắt khôi phục 100%)", Config.LagReduced, function(val)
     Config.LagReduced = val
@@ -316,7 +316,42 @@ createToggleButton("⚡ Giảm lag (Bật xóa / Tắt khôi phục 100%)", Conf
 end)
 
 ---------------------------------------------------------
--- CHỨC NĂNG 2: TĂNG 1000 FPS CỰC HẠN & TRIỆT CẢM ĐỘ TRỄ
+-- CHỨC NĂNG 2: GIẢM LAG VÔ CỰC KHI QUAY CAM (CHỐNG RÍT)
+---------------------------------------------------------
+createToggleButton("🎥 Giảm Lag Vô Cực Khi Quay Cam (Chống Rít)", Config.CamSmoothEnabled, function(val)
+    Config.CamSmoothEnabled = val
+    if val then
+        -- Tắt tính toán phản chiếu nước & hiệu ứng Dynamic Lighting khi xoay
+        pcall(function()
+            if Workspace.Terrain then
+                Workspace.Terrain.WaterWaveSize = 0
+                Workspace.Terrain.WaterWaveSpeed = 0
+                Workspace.Terrain.WaterReflectance = 0
+            end
+        end)
+        
+        -- Khóa chế độ render Compatibility để triệt tiêu việc load ánh sáng theo góc quay
+        pcall(function()
+            sethiddenproperty(Lighting, "Technology", Enum.Technology.Compatibility)
+        end)
+        
+        -- Tắt rung lắc camera/độ trễ chuột
+        pcall(function()
+            UserSettings():GetService("UserGameSettings").RotationType = Enum.RotationType.CameraRelative
+        end)
+    else
+        pcall(function()
+            if Workspace.Terrain then
+                Workspace.Terrain.WaterWaveSize = 0.15
+                Workspace.Terrain.WaterWaveSpeed = 10
+                Workspace.Terrain.WaterReflectance = 1
+            end
+        end)
+    end
+end)
+
+---------------------------------------------------------
+-- CHỨC NĂNG 3: TĂNG 1000 FPS CỰC HẠN
 ---------------------------------------------------------
 createToggleButton("🚀 Tăng 1000 FPS Cực Hạn (Siêu Mượt)", Config.FPSBoosted, function(val)
     Config.FPSBoosted = val
@@ -374,7 +409,7 @@ local function toggleUI()
         tween:Play()
         tween.Completed:Connect(function()
             MainFrame.Visible = false
-            MainFrame.Size = UDim2.new(0, 340, 0, 245)
+            MainFrame.Size = UDim2.new(0, 340, 0, 290)
             CircleBtn.Visible = true
             CircleBtn.Size = UDim2.new(0, 0, 0, 0)
             TweenService:Create(CircleBtn, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
@@ -387,7 +422,7 @@ local function toggleUI()
         MainFrame.Visible = true
         MainFrame.Size = UDim2.new(0, 0, 0, 0)
         local tween = TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 340, 0, 245)
+            Size = UDim2.new(0, 340, 0, 290)
         })
         tween:Play()
         tween.Completed:Connect(function()
