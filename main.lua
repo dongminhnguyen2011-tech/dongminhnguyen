@@ -1,21 +1,25 @@
--- ========================================================
--- SCRIPT: AUTO FARM LEVEL (SỬA LỖI TỰ ĐÁNH & CHUYỂN SEA)
--- Hỗ trợ tất cả Executors Mobile/PC
--- ========================================================
+-- =================================================================
+-- BLOX FRUITS: ULTIMATE AUTO FARM LEVEL (OPTIMIZED & MODERN UI)
+-- Hỗ trợ: Sea 1, Sea 2, Sea 3 | Tự chuyển Đảo & Sea | Gom quái mượt
+-- =================================================================
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
+-- BIẾN CẤU HÌNH HỆ THỐNG
 _G.AutoFarmLevel = false
+_G.SelectWeapon = "Melee" -- Melee, Sword, Blox Fruit
+_G.TweenSpeed = 300       -- Tốc độ di chuyển an toàn
 
--- 1. XỬ LÝ NOCLIP (XUYÊN VẬT THỂ KHI BAY)
+-- 1. HÀM NGUYÊN MẪU NOCLIP (XUYÊN VẬT THỂ KHI BAY)
 RunService.Stepped:Connect(function()
     if _G.AutoFarmLevel and LocalPlayer.Character then
-        for _, part in pairs(LocalPlayer.Character:GetChildren()) do
+        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
             if part:IsA("BasePart") then
                 part.CanCollide = false
             end
@@ -23,68 +27,70 @@ RunService.Stepped:Connect(function()
     end
 end)
 
--- 2. THÔNG BÁO KÍCH HOẠT
-local function ShowNotification(text)
-    pcall(function()
-        StarterGui:SetCore("SendNotification", {
-            Title = "ĐỒNG M NGUYÊN HUB",
-            Text = text,
-            Duration = 4
-        })
-    end)
-end
-
--- 3. HÀM BAY TWEEN AN TOÀN
+-- 2. HÀM BAY TWEEN AN TOÀN
+local currentTween = nil
 local function TweenTo(targetCFrame)
     local char = LocalPlayer.Character
     if char and char:FindFirstChild("HumanoidRootPart") then
         local hrp = char.HumanoidRootPart
         local dist = (hrp.Position - targetCFrame.Position).Magnitude
-        local speed = 320
-        local info = TweenInfo.new(dist / speed, Enum.EasingStyle.Linear)
-        local tween = TweenService:Create(hrp, info, {CFrame = targetCFrame})
-        tween:Play()
-        return tween
+        
+        -- Nếu khoảng cách quá ngắn thì dịch chuyển trực tiếp
+        if dist < 10 then
+            hrp.CFrame = targetCFrame
+            return
+        end
+
+        local info = TweenInfo.new(dist / _G.TweenSpeed, Enum.EasingStyle.Linear)
+        currentTween = TweenService:Create(hrp, info, {CFrame = targetCFrame})
+        currentTween:Play()
     end
 end
 
--- 4. HÀM TỰ ĐỘNG TRANG BỊ VŨ KHÍ & VUNG ĐÓN ĐÁNH (CƠ CHẾ MỚI KHOẢNG 100% HOẠT ĐỘNG)
+-- 3. HÀM TỰ ĐỘNG ĐÁNH VÀ TRANG BỊ VŨ KHÍ
 local function AutoAttack()
     local char = LocalPlayer.Character
     if not char or not char:FindFirstChild("Humanoid") then return end
 
-    -- Tự trang bị vũ khí đầu tiên trong balo nếu chưa cầm
-    local currentTool = char:FindFirstChildOfClass("Tool")
-    if not currentTool then
+    -- Tự cầm vũ khí được chọn
+    local tool = char:FindFirstChildOfClass("Tool")
+    if not tool then
         for _, item in pairs(LocalPlayer.Backpack:GetChildren()) do
             if item:IsA("Tool") then
-                char.Humanoid:EquipTool(item)
-                currentTool = item
-                break
+                if (_G.SelectWeapon == "Melee" and item.ToolTip == "Melee") or
+                   (_G.SelectWeapon == "Sword" and item.ToolTip == "Sword") or
+                   (_G.SelectWeapon == "Blox Fruit" and item.ToolTip == "Blox Fruit") or
+                   _G.SelectWeapon == "Melee" then
+                    char.Humanoid:EquipTool(item)
+                    tool = item
+                    break
+                end
             end
         end
     end
 
-    -- Kích hoạt vung vũ khí đánh
-    if currentTool then
-        currentTool:Activate()
+    -- Kích hoạt đòn đánh
+    if tool then
+        tool:Activate()
         pcall(function()
             ReplicatedStorage.Remotes.CommF_:InvokeServer("RegisterAttack")
         end)
     end
 end
 
--- 5. HÀM GOM QUÁI LẠI MỘT ĐIỂM
+-- 4. HÀM GOM QUÁI LẠI MỘT ĐIỂM (BRING MOBS)
 local function BringMobs(targetCFrame)
     pcall(function()
         local enemies = workspace:FindFirstChild("Enemies")
         if enemies then
             for _, enemy in pairs(enemies:GetChildren()) do
-                if enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChildOfClass("Humanoid") then
-                    if enemy.Humanoid.Health > 0 and (enemy.HumanoidRootPart.Position - targetCFrame.Position).Magnitude <= 300 then
-                        enemy.HumanoidRootPart.CFrame = targetCFrame
-                        enemy.HumanoidRootPart.CanCollide = false
-                        enemy.Humanoid.WalkSpeed = 0
+                local hum = enemy:FindFirstChildOfClass("Humanoid")
+                local hrp = enemy:FindFirstChild("HumanoidRootPart")
+                if hum and hrp and hum.Health > 0 then
+                    if (hrp.Position - targetCFrame.Position).Magnitude <= 320 then
+                        hrp.CFrame = targetCFrame
+                        hrp.CanCollide = false
+                        hum.WalkSpeed = 0
                     end
                 end
             end
@@ -92,14 +98,14 @@ local function BringMobs(targetCFrame)
     end)
 end
 
--- 6. BẢNG NHIỆM VỤ THEO LEVEL
+-- 5. BẢNG DỮ LIỆU CÁC NHIỆM VỤ THEO LEVEL
 local function GetQuestData()
     local level = 1
     if LocalPlayer:FindFirstChild("Data") and LocalPlayer.Data:FindFirstChild("Level") then
         level = LocalPlayer.Data.Level.Value
     end
 
-    -- ĐỦ LEVEL TỰ SANG SEA
+    -- ĐỦ LEVEL TỰ CHUYỂN SEA
     if level >= 700 and game.PlaceId == 2753915549 then
         ReplicatedStorage.Remotes.CommF_:InvokeServer("TravelDressrosa")
         return nil
@@ -108,7 +114,7 @@ local function GetQuestData()
         return nil
     end
 
-    -- SEA 1
+    -- CẤP ĐỘ SEA 1 (FIRST SEA)
     if game.PlaceId == 2753915549 then
         if level >= 1 and level < 10 then
             return "BanditQuest1", 1, CFrame.new(1059, 16, 1549), CFrame.new(1190, 16, 1610)
@@ -143,18 +149,24 @@ local function GetQuestData()
         elseif level >= 625 and level < 700 then
             return "FountainQuest", 1, CFrame.new(5258, 38, 4050), CFrame.new(5500, 38, 3950)
         end
-    -- SEA 2
+    -- CẤP ĐỘ SEA 2 (SECOND SEA)
     elseif game.PlaceId == 4442272183 then
-        return "Area1Quest", 1, CFrame.new(-425, 73, 1835), CFrame.new(-750, 73, 2400)
-    -- SEA 3
+        if level >= 700 and level < 775 then
+            return "Area1Quest", 1, CFrame.new(-425, 73, 1835), CFrame.new(-750, 73, 2400)
+        elseif level >= 775 and level < 875 then
+            return "Area2Quest", 1, CFrame.new(630, 73, 918), CFrame.new(850, 73, 1200)
+        else
+            return "Area1Quest", 1, CFrame.new(-425, 73, 1835), CFrame.new(-750, 73, 2400)
+        end
+    -- CẤP ĐỘ SEA 3 (THIRD SEA)
     elseif game.PlaceId == 7449423635 then
         return "PiratePortQuest", 1, CFrame.new(-290, 44, 5580), CFrame.new(-450, 44, 5500)
     end
 end
 
--- 7. VÒNG LẶP CHÍNH AUTO FARM
+-- 6. VÒNG LẶP XỬ LÝ CHÍNH
 task.spawn(function()
-    while task.wait(0.1) do
+    while task.wait(0.05) do
         if _G.AutoFarmLevel then
             pcall(function()
                 local char = LocalPlayer.Character
@@ -163,18 +175,18 @@ task.spawn(function()
                 local questName, questLvl, npcCFrame, mobCFrame = GetQuestData()
                 if not questName then return end
 
-                -- Kiểm tra trạng thái Quest
+                -- Kiểm tra xem đã có Nhiệm vụ chưa
                 local pGui = LocalPlayer:FindFirstChild("PlayerGui")
                 local hasQuest = pGui and pGui:FindFirstChild("Main") and pGui.Main:FindFirstChild("Quest") and pGui.Main.Quest.Visible
 
                 if not hasQuest then
-                    -- Chưa có Quest -> Bay tới NPC bấm nhận
+                    -- CHƯA CÓ Q: Bay tới NPC nhận Q
                     TweenTo(npcCFrame)
                     if (char.HumanoidRootPart.Position - npcCFrame.Position).Magnitude <= 15 then
                         ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", questName, questLvl)
                     end
                 else
-                    -- Đã có Quest -> Quét tìm quái gần bãi quái
+                    -- ĐÃ CÓ Q: Tìm mục tiêu xung quanh bãi quái
                     local targetMob = nil
                     local enemies = workspace:FindFirstChild("Enemies")
                     if enemies then
@@ -182,8 +194,7 @@ task.spawn(function()
                             local hum = enemy:FindFirstChildOfClass("Humanoid")
                             local hrp = enemy:FindFirstChild("HumanoidRootPart")
                             if hum and hrp and hum.Health > 0 then
-                                -- Ưu tiên lấy quái gần bãi nhiệm vụ trong vòng 400m
-                                if (hrp.Position - mobCFrame.Position).Magnitude <= 400 then
+                                if (hrp.Position - mobCFrame.Position).Magnitude <= 380 then
                                     targetMob = enemy
                                     break
                                 end
@@ -192,17 +203,15 @@ task.spawn(function()
                     end
 
                     if targetMob then
-                        -- Bay treo trên đầu quái 8 studs & vung đòn đánh
+                        -- Bay treo trên đầu quái 8.5 studs
                         local mobHRP = targetMob.HumanoidRootPart
-                        char.HumanoidRootPart.CFrame = mobHRP.CFrame * CFrame.new(0, 8, 0) * CFrame.Angles(math.rad(-90), 0, 0)
+                        char.HumanoidRootPart.CFrame = mobHRP.CFrame * CFrame.new(0, 8.5, 0) * CFrame.Angles(math.rad(-90), 0, 0)
                         
-                        -- Gom các con quái khác tới cùng điểm
+                        -- Gom quái xung quanh & Đánh
                         BringMobs(mobHRP.CFrame)
-                        
-                        -- Đánh trực tiếp
                         AutoAttack()
                     else
-                        -- Đợi quái spawn -> Bay sẵn tới Bãi quái
+                        -- Bay sẵn tới điểm quái chờ spawn
                         TweenTo(mobCFrame)
                     end
                 end
@@ -211,56 +220,161 @@ task.spawn(function()
     end
 end)
 
--- 8. GIAO DIỆN BẬT / TẮT
+-- =================================================================
+-- 7. THIẾT KẾ GIAO DIỆN (MODERN DARK/NEON GUI)
+-- =================================================================
+
+-- Xóa UI cũ nếu có
+if game:GetService("CoreGui"):FindFirstChild("DongMNguyen_UltraUI") then
+    game:GetService("CoreGui"):FindFirstChild("DongMNguyen_UltraUI"):Destroy()
+end
+
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "DongMNguyen_FixFarm"
+ScreenGui.Name = "DongMNguyen_UltraUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = game:GetService("CoreGui")
 
-local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 220, 0, 110)
-Frame.Position = UDim2.new(0.05, 0, 0.4, 0)
-Frame.BackgroundColor3 = Color3.fromRGB(20, 22, 30)
-Frame.Active = true
-Frame.Draggable = true
-Frame.Parent = ScreenGui
+-- Khung chính UI
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 340, 0, 220)
+MainFrame.Position = UDim2.new(0.35, 0, 0.3, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 17, 23)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
 
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 10)
-UICorner.Parent = Frame
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = MainFrame
 
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 30)
-Title.BackgroundTransparency = 1
-Title.Text = "AUTO FARM FIX 100%"
-Title.TextColor3 = Color3.fromRGB(0, 230, 150)
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 12
-Title.Parent = Frame
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(0, 255, 160)
+MainStroke.Thickness = 1.5
+MainStroke.Transparency = 0.3
+MainStroke.Parent = MainFrame
 
-local ToggleBtn = Instance.new("TextButton")
-ToggleBtn.Size = UDim2.new(0.9, 0, 0, 45)
-ToggleBtn.Position = UDim2.new(0.05, 0, 0.4, 0)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(40, 44, 58)
-ToggleBtn.Text = "BẬT FARM LEVEL"
-ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleBtn.Font = Enum.Font.GothamBold
-ToggleBtn.TextSize = 12
-ToggleBtn.Parent = Frame
+-- Thanh tiêu đề
+local TopBar = Instance.new("Frame")
+TopBar.Size = UDim2.new(1, 0, 0, 40)
+TopBar.BackgroundColor3 = Color3.fromRGB(22, 25, 35)
+TopBar.BorderSizePixel = 0
+TopBar.Parent = MainFrame
 
-local BtnCorner = Instance.new("UICorner")
-BtnCorner.CornerRadius = UDim.new(0, 8)
-BtnCorner.Parent = ToggleBtn
+local TopBarCorner = Instance.new("UICorner")
+TopBarCorner.CornerRadius = UDim.new(0, 12)
+TopBarCorner.Parent = TopBar
 
-ToggleBtn.MouseButton1Click:Connect(function()
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(1, -50, 1, 0)
+TitleLabel.Position = UDim2.new(0, 15, 0, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "ĐỒNG M NGUYÊN HUB • AUTO FARM"
+TitleLabel.TextColor3 = Color3.fromRGB(0, 255, 160)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = 13
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.Parent = TopBar
+
+-- Nút Thu nhỏ / Đóng
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 28, 0, 28)
+CloseBtn.Position = UDim2.new(1, -34, 0, 6)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 80)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 11
+CloseBtn.Parent = TopBar
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 6)
+CloseCorner.Parent = CloseBtn
+
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- Container chứa nội dung
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Size = UDim2.new(1, -20, 1, -55)
+ContentFrame.Position = UDim2.new(0, 10, 0, 48)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.Parent = MainFrame
+
+-- Nút Bật/Tắt Auto Farm
+local ToggleFarmBtn = Instance.new("TextButton")
+ToggleFarmBtn.Size = UDim2.new(1, 0, 0, 50)
+ToggleFarmBtn.Position = UDim2.new(0, 0, 0, 10)
+ToggleFarmBtn.BackgroundColor3 = Color3.fromRGB(30, 35, 48)
+ToggleFarmBtn.Text = "BẬT AUTO FARM LEVEL"
+ToggleFarmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleFarmBtn.Font = Enum.Font.GothamBold
+ToggleFarmBtn.TextSize = 13
+ToggleFarmBtn.Parent = ContentFrame
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 8)
+ToggleCorner.Parent = ToggleFarmBtn
+
+local ToggleStroke = Instance.new("UIStroke")
+ToggleStroke.Color = Color3.fromRGB(50, 55, 75)
+ToggleStroke.Thickness = 1
+ToggleStroke.Parent = ToggleFarmBtn
+
+ToggleFarmBtn.MouseButton1Click:Connect(function()
     _G.AutoFarmLevel = not _G.AutoFarmLevel
     if _G.AutoFarmLevel then
-        ToggleBtn.Text = "TẮT FARM LEVEL"
-        ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 120)
-        ShowNotification("Kích hoạt farm lever thành công [Blox Fruits]")
+        ToggleFarmBtn.Text = "TẮT AUTO FARM LEVEL [ ĐANG CHẠY ]"
+        ToggleFarmBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 100)
+        ToggleStroke.Color = Color3.fromRGB(0, 255, 150)
+        
+        pcall(function()
+            StarterGui:SetCore("SendNotification", {
+                Title = "ĐỒNG M NGUYÊN HUB",
+                Text = "Kích hoạt farm lever thành công Blox Fruits",
+                Duration = 4
+            })
+        end)
     else
-        ToggleBtn.Text = "BẬT FARM LEVEL"
-        ToggleBtn.BackgroundColor3 = Color3.fromRGB(40, 44, 58)
-        ShowNotification("Đã tắt Auto Farm Level")
+        ToggleFarmBtn.Text = "BẬT AUTO FARM LEVEL"
+        ToggleFarmBtn.BackgroundColor3 = Color3.fromRGB(30, 35, 48)
+        ToggleStroke.Color = Color3.fromRGB(50, 55, 75)
     end
 end)
+
+-- Chọn loại Vũ Khí
+local WeaponBtn = Instance.new("TextButton")
+WeaponBtn.Size = UDim2.new(1, 0, 0, 40)
+WeaponBtn.Position = UDim2.new(0, 0, 0, 70)
+WeaponBtn.BackgroundColor3 = Color3.fromRGB(25, 28, 38)
+WeaponBtn.Text = "VŨ KHÍ: MELEE (CẬN CHIẾN)"
+WeaponBtn.TextColor3 = Color3.fromRGB(200, 200, 220)
+WeaponBtn.Font = Enum.Font.GothamSemibold
+WeaponBtn.TextSize = 12
+WeaponBtn.Parent = ContentFrame
+
+local WeaponCorner = Instance.new("UICorner")
+WeaponCorner.CornerRadius = UDim.new(0, 8)
+WeaponCorner.Parent = WeaponBtn
+
+local weaponsList = {"Melee", "Sword", "Blox Fruit"}
+local currentWpIdx = 1
+
+WeaponBtn.MouseButton1Click:Connect(function()
+    currentWpIdx = currentWpIdx + 1
+    if currentWpIdx > #weaponsList then currentWpIdx = 1 end
+    _G.SelectWeapon = weaponsList[currentWpIdx]
+    WeaponBtn.Text = "VŨ KHÍ: " .. string.upper(_G.SelectWeapon)
+end)
+
+-- Trạng thái hệ thống
+local StatusText = Instance.new("TextLabel")
+StatusText.Size = UDim2.new(1, 0, 0, 25)
+StatusText.Position = UDim2.new(0, 0, 0, 125)
+StatusText.BackgroundTransparency = 1
+StatusText.Text = "Trạng thái: Sẵn sàng hoạt động"
+StatusText.TextColor3 = Color3.fromRGB(130, 140, 160)
+StatusText.Font = Enum.Font.Gotham
+StatusText.TextSize = 11
+StatusText.Parent = ContentFrame
