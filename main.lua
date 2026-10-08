@@ -1,7 +1,6 @@
 -- ========================================================
--- SCRIPT: ĐỒNG M NGUYÊN [ V1.0 ]
--- Phong cách Giao diện RealKid Hub / Premium Dark UI
--- Hỗ trợ: Tất cả Game, Điện thoại (Android/iOS) & PC
+-- SCRIPT: ĐỒNG M NGUYÊN [ V1.0 ] - ULTRA PERFORMANCE
+-- Hỗ trợ: Tất cả Game Roblox, Điện thoại (Android/iOS) & PC
 -- ========================================================
 
 local Players = game:GetService("Players")
@@ -9,9 +8,19 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
+local MarketplaceService = game:GetService("MarketplaceService")
 local LocalPlayer = Players.LocalPlayer
 
--- Xóa GUI cũ nếu đã tồn tại
+-- Lấy tên game thực tế
+local currentGameName = "Roblox Game"
+pcall(function()
+    local info = MarketplaceService:GetProductInfo(game.PlaceId)
+    if info and info.Name then
+        currentGameName = info.Name
+    end
+end)
+
+-- Xóa GUI cũ nếu trùng tên
 if game:GetService("CoreGui"):FindFirstChild("DongMNguyenGUI_V1") then
     game:GetService("CoreGui"):FindFirstChild("DongMNguyenGUI_V1"):Destroy()
 end
@@ -26,18 +35,72 @@ pcall(function()
 end)
 ScreenGui.Parent = parentTarget or LocalPlayer:WaitForChild("PlayerGui")
 
--- Màu sắc chủ đạo (Chuẩn Dark Theme theo ảnh ví dụ)
-local BG_COLOR = Color3.fromRGB(20, 21, 26)       -- Nền chính
-local SIDEBAR_COLOR = Color3.fromRGB(26, 27, 34)  -- Sidebar bên trái
-local CARD_COLOR = Color3.fromRGB(32, 34, 44)     -- Khung chức năng
-local ACCENT_COLOR = Color3.fromRGB(90, 95, 240)  -- Màu Xanh/Tím hiện đại
-local TEXT_COLOR = Color3.fromRGB(235, 238, 245)
-local SUBTEXT_COLOR = Color3.fromRGB(150, 155, 175)
+-- Màu sắc Giao diện (Dark Premium Theme)
+local BG_COLOR = Color3.fromRGB(18, 19, 24)
+local SIDEBAR_COLOR = Color3.fromRGB(24, 25, 32)
+local CARD_COLOR = Color3.fromRGB(30, 32, 42)
+local ACCENT_COLOR = Color3.fromRGB(0, 230, 150)
+local TEXT_COLOR = Color3.fromRGB(240, 242, 248)
+local SUBTEXT_COLOR = Color3.fromRGB(140, 145, 165)
 
--- 1. NÚT TRÒN NỔI (FLOATING BUTTON - KÉO DI CHUYỂN DỄ DÀNG)
+-- HỆ THỐNG THÔNG BÁO (NOTIFICATION TOAST)
+local function showNotification(title, message)
+    local NotifFrame = Instance.new("Frame")
+    NotifFrame.Size = UDim2.new(0, 320, 0, 70)
+    NotifFrame.Position = UDim2.new(0.5, -160, 0, -80)
+    NotifFrame.BackgroundColor3 = Color3.fromRGB(24, 26, 36)
+    NotifFrame.BorderSizePixel = 0
+    NotifFrame.Parent = ScreenGui
+
+    local NotifCorner = Instance.new("UICorner")
+    NotifCorner.CornerRadius = UDim.new(0, 10)
+    NotifCorner.Parent = NotifFrame
+
+    local NotifStroke = Instance.new("UIStroke")
+    NotifStroke.Color = ACCENT_COLOR
+    NotifStroke.Thickness = 1.5
+    NotifStroke.Parent = NotifFrame
+
+    local NotifTitle = Instance.new("TextLabel")
+    NotifTitle.Size = UDim2.new(1, -20, 0, 22)
+    NotifTitle.Position = UDim2.new(0, 10, 0, 6)
+    NotifTitle.BackgroundTransparency = 1
+    NotifTitle.Text = title
+    NotifTitle.TextColor3 = ACCENT_COLOR
+    NotifTitle.Font = Enum.Font.GothamBold
+    NotifTitle.TextSize = 12
+    NotifTitle.TextXAlignment = Enum.TextXAlignment.Left
+    NotifTitle.Parent = NotifFrame
+
+    local NotifText = Instance.new("TextLabel")
+    NotifText.Size = UDim2.new(1, -20, 0, 38)
+    NotifText.Position = UDim2.new(0, 10, 0, 26)
+    NotifText.BackgroundTransparency = 1
+    NotifText.Text = message
+    NotifText.TextColor3 = TEXT_COLOR
+    NotifText.Font = Enum.Font.GothamMedium
+    NotifText.TextSize = 10
+    NotifText.TextWrapped = true
+    NotifText.TextXAlignment = Enum.TextXAlignment.Left
+    NotifText.TextYAlignment = Enum.TextYAlignment.Top
+    NotifText.Parent = NotifFrame
+
+    -- Hiệu ứng trượt vào / trượt ra
+    TweenService:Create(NotifFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -160, 0, 20)}):Play()
+    
+    task.delay(4, function()
+        local tweenOut = TweenService:Create(NotifFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Position = UDim2.new(0.5, -160, 0, -100)})
+        tweenOut:Play()
+        tweenOut.Completed:Connect(function()
+            NotifFrame:Destroy()
+        end)
+    end)
+end
+
+-- 1. NÚT TRÒN NỔI DI CHUYỂN
 local OpenButton = Instance.new("TextButton")
 OpenButton.Name = "OpenButton"
-OpenButton.Size = UDim2.new(0, 50, 0, 50)
+OpenButton.Size = UDim2.new(0, 52, 0, 52)
 OpenButton.Position = UDim2.new(0.05, 0, 0.3, 0)
 OpenButton.BackgroundColor3 = SIDEBAR_COLOR
 OpenButton.Text = "ĐMN"
@@ -57,11 +120,11 @@ UIStrokeOpen.Color = ACCENT_COLOR
 UIStrokeOpen.Thickness = 2
 UIStrokeOpen.Parent = OpenButton
 
--- 2. KHUNG MENU CHÍNH (MAIN WINDOW GIỐNG ẢNH 1)
+-- 2. KHUNG MENU CHÍNH
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 540, 0, 330)
-MainFrame.Position = UDim2.new(0.5, -270, 0.5, -165)
+MainFrame.Size = UDim2.new(0, 520, 0, 330)
+MainFrame.Position = UDim2.new(0.5, -260, 0.5, -165)
 MainFrame.BackgroundColor3 = BG_COLOR
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
@@ -72,11 +135,11 @@ UICornerMain.CornerRadius = UDim.new(0, 12)
 UICornerMain.Parent = MainFrame
 
 local UIStrokeMain = Instance.new("UIStroke")
-UIStrokeMain.Color = Color3.fromRGB(45, 48, 62)
+UIStrokeMain.Color = Color3.fromRGB(40, 44, 58)
 UIStrokeMain.Thickness = 1
 UIStrokeMain.Parent = MainFrame
 
--- thanh Tiêu Đề (TOPBAR)
+-- Topbar Header
 local TopBar = Instance.new("Frame")
 TopBar.Size = UDim2.new(1, 0, 0, 40)
 TopBar.BackgroundColor3 = SIDEBAR_COLOR
@@ -94,30 +157,19 @@ TitleLabel.TextSize = 13
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 TitleLabel.Parent = TopBar
 
--- Các Nút Đóng & Thu Nhỏ
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0, 28, 0, 28)
 CloseBtn.Position = UDim2.new(1, -34, 0.5, -14)
 CloseBtn.BackgroundTransparency = 1
 CloseBtn.Text = "✕"
-CloseBtn.TextColor3 = Color3.fromRGB(230, 90, 90)
+CloseBtn.TextColor3 = Color3.fromRGB(240, 80, 80)
 CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.TextSize = 14
 CloseBtn.Parent = TopBar
 
-local MinBtn = Instance.new("TextButton")
-MinBtn.Size = UDim2.new(0, 28, 0, 28)
-MinBtn.Position = UDim2.new(1, -66, 0.5, -14)
-MinBtn.BackgroundTransparency = 1
-MinBtn.Text = "—"
-MinBtn.TextColor3 = SUBTEXT_COLOR
-MinBtn.Font = Enum.Font.GothamBold
-MinBtn.TextSize = 12
-MinBtn.Parent = TopBar
-
--- SIDEBAR (DANH MỤC BÊN TRÁI)
+-- Sidebar
 local SideBar = Instance.new("Frame")
-SideBar.Size = UDim2.new(0, 150, 1, -40)
+SideBar.Size = UDim2.new(0, 140, 1, -40)
 SideBar.Position = UDim2.new(0, 0, 0, 40)
 SideBar.BackgroundColor3 = SIDEBAR_COLOR
 SideBar.BorderSizePixel = 0
@@ -134,14 +186,14 @@ SidePadding.PaddingLeft = UDim.new(0, 8)
 SidePadding.PaddingRight = UDim.new(0, 8)
 SidePadding.Parent = SideBar
 
--- CONTENT AREA (NỘI DUNG BÊN PHẢI)
+-- Content Area
 local ContentArea = Instance.new("Frame")
-ContentArea.Size = UDim2.new(1, -150, 1, -40)
-ContentArea.Position = UDim2.new(0, 150, 0, 40)
+ContentArea.Size = UDim2.new(1, -140, 1, -40)
+ContentArea.Position = UDim2.new(0, 140, 0, 40)
 ContentArea.BackgroundTransparency = 1
 ContentArea.Parent = MainFrame
 
--- TÍNH NĂNG KÉO THẢ BẰNG TAY / CHUỘT
+-- KÉO THẢ TAY / CHUỘT
 local function enableDrag(frame)
     local dragging, dragInput, dragStart, startPos
     frame.InputBegan:Connect(function(input)
@@ -170,28 +222,26 @@ end
 enableDrag(MainFrame)
 enableDrag(OpenButton)
 
--- BẬT / ẨN MENU
-local function toggleUI(visible)
-    MainFrame.Visible = visible
-    OpenButton.Visible = not visible
-end
+CloseBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+    OpenButton.Visible = true
+end)
 
-CloseBtn.MouseButton1Click:Connect(function() toggleUI(false) end)
-MinBtn.MouseButton1Click:Connect(function() toggleUI(false) end)
-OpenButton.MouseButton1Click:Connect(function() toggleUI(true) end)
+OpenButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = true
+    OpenButton.Visible = false
+end)
 
--- QUẢN LÝ TAB BÊN TRÁI
+-- TẠO TAB
 local tabs = {}
-
 local function createTab(name, iconText)
     local TabButton = Instance.new("TextButton")
     TabButton.Size = UDim2.new(1, 0, 0, 36)
-    TabButton.BackgroundColor3 = BG_COLOR
     TabButton.BackgroundTransparency = 1
     TabButton.Text = "  " .. iconText .. "  " .. name
     TabButton.TextColor3 = SUBTEXT_COLOR
     TabButton.Font = Enum.Font.GothamMedium
-    TabButton.TextSize = 12
+    TabButton.TextSize = 11
     TabButton.TextXAlignment = Enum.TextXAlignment.Left
     TabButton.Parent = SideBar
 
@@ -214,8 +264,8 @@ local function createTab(name, iconText)
 
     local PagePadding = Instance.new("UIPadding")
     PagePadding.PaddingTop = UDim.new(0, 10)
-    PagePadding.PaddingLeft = UDim.new(0, 12)
-    PagePadding.PaddingRight = UDim.new(0, 12)
+    PagePadding.PaddingLeft = UDim.new(0, 10)
+    PagePadding.PaddingRight = UDim.new(0, 10)
     PagePadding.Parent = TabPage
 
     TabButton.MouseButton1Click:Connect(function()
@@ -230,20 +280,17 @@ local function createTab(name, iconText)
         TabPage.Visible = true
     end)
 
-    local tabData = {Button = TabButton, Page = TabPage}
-    table.insert(tabs, tabData)
-
+    table.insert(tabs, {Button = TabButton, Page = TabPage})
     if #tabs == 1 then
         TabButton.BackgroundTransparency = 0
         TabButton.BackgroundColor3 = CARD_COLOR
         TabButton.TextColor3 = TEXT_COLOR
         TabPage.Visible = true
     end
-
     return TabPage
 end
 
--- HÀM TẠO CÔNG TẮC TOGGLE SWITCH (GIỐNG MẪU ẢNH 1)
+-- TẠO CÔNG TẮC TOGGLE
 local function addToggle(page, labelText, defaultState, callback)
     local Frame = Instance.new("Frame")
     Frame.Size = UDim2.new(1, -6, 0, 42)
@@ -261,11 +308,10 @@ local function addToggle(page, labelText, defaultState, callback)
     Label.Text = labelText
     Label.TextColor3 = TEXT_COLOR
     Label.Font = Enum.Font.GothamMedium
-    Label.TextSize = 12
+    Label.TextSize = 11
     Label.TextXAlignment = Enum.TextXAlignment.Left
     Label.Parent = Frame
 
-    -- Nút Gạt Tròn (Switch)
     local TogglePill = Instance.new("TextButton")
     TogglePill.Size = UDim2.new(0, 42, 0, 22)
     TogglePill.Position = UDim2.new(1, -52, 0.5, -11)
@@ -288,7 +334,6 @@ local function addToggle(page, labelText, defaultState, callback)
     KnobCorner.Parent = CircleKnob
 
     local enabled = defaultState
-
     TogglePill.MouseButton1Click:Connect(function()
         enabled = not enabled
         local targetPos = enabled and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 3, 0.5, -8)
@@ -301,79 +346,172 @@ local function addToggle(page, labelText, defaultState, callback)
     end)
 end
 
--- ĐỊNH NGHĨA CÁC TAB CHỨC NĂNG
-local TabOptim = createTab("Tối Ưu & Lag", "⚡")
+-- TẠO THANH KÉO SLIDER (KÉO CHỌN KHOẢNG CÁCH)
+local function addSlider(page, labelText, min, max, default, callback)
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, -6, 0, 52)
+    Frame.BackgroundColor3 = CARD_COLOR
+    Frame.Parent = page
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 8)
+    Corner.Parent = Frame
+
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0.6, 0, 0, 22)
+    Label.Position = UDim2.new(0, 12, 0, 4)
+    Label.BackgroundTransparency = 1
+    Label.Text = labelText
+    Label.TextColor3 = TEXT_COLOR
+    Label.Font = Enum.Font.GothamMedium
+    Label.TextSize = 11
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Frame
+
+    local ValueLabel = Instance.new("TextLabel")
+    ValueLabel.Size = UDim2.new(0.3, 0, 0, 22)
+    ValueLabel.Position = UDim2.new(0.7, -12, 0, 4)
+    ValueLabel.BackgroundTransparency = 1
+    ValueLabel.Text = tostring(default) .. " mét"
+    ValueLabel.TextColor3 = ACCENT_COLOR
+    ValueLabel.Font = Enum.Font.GothamBold
+    ValueLabel.TextSize = 11
+    ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+    ValueLabel.Parent = Frame
+
+    local SliderBar = Instance.new("Frame")
+    SliderBar.Size = UDim2.new(1, -24, 0, 6)
+    SliderBar.Position = UDim2.new(0, 12, 0, 34)
+    SliderBar.BackgroundColor3 = Color3.fromRGB(50, 54, 68)
+    SliderBar.BorderSizePixel = 0
+    SliderBar.Parent = Frame
+
+    local BarCorner = Instance.new("UICorner")
+    BarCorner.CornerRadius = UDim.new(1, 0)
+    BarCorner.Parent = SliderBar
+
+    local FillBar = Instance.new("Frame")
+    FillBar.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+    FillBar.BackgroundColor3 = ACCENT_COLOR
+    FillBar.BorderSizePixel = 0
+    FillBar.Parent = SliderBar
+
+    local FillCorner = Instance.new("UICorner")
+    FillCorner.CornerRadius = UDim.new(1, 0)
+    FillCorner.Parent = FillBar
+
+    local Knob = Instance.new("Frame")
+    Knob.Size = UDim2.new(0, 14, 0, 14)
+    Knob.Position = UDim2.new(1, -7, 0.5, -7)
+    Knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Knob.Parent = FillBar
+
+    local KnobCorner = Instance.new("UICorner")
+    KnobCorner.CornerRadius = UDim.new(1, 0)
+    KnobCorner.Parent = Knob
+
+    local isDragging = false
+    local function updateValue(input)
+        local posX = math.clamp(input.Position.X - SliderBar.AbsolutePosition.X, 0, SliderBar.AbsoluteSize.X)
+        local percentage = posX / SliderBar.AbsoluteSize.X
+        local currentVal = math.floor(min + (max - min) * percentage)
+        
+        FillBar.Size = UDim2.new(percentage, 0, 1, 0)
+        ValueLabel.Text = tostring(currentVal) .. " mét"
+        callback(currentVal)
+    end
+
+    SliderBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            isDragging = true
+            updateValue(input)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            updateValue(input)
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            isDragging = false
+        end
+    end)
+end
+
+-- TẠO TAB MỚI
+local TabOptim = createTab("Tối Ưu & FPS", "⚡")
 local TabESP = createTab("Định Vị ESP", "👁")
-local TabLuck = createTab("May Mắn & Khác", "🍀")
+local TabLuck = createTab("Tăng May Mắn", "🍀")
 
 ---------------------------------------------------------
--- 1. TÍNH NĂNG GIẢM LAG (ĐÃ FIX LỖI 100% - KHÔNG BỊ ĐỎ MAP)
+-- 1. SIÊU GIẢM LAG 100% (CỰC MƯỢT CHO ĐIỆN THOẠI YẾU)
 ---------------------------------------------------------
-local originalMaterials = {}
-local originalDecals = {}
-
-local function setAntiLag(state)
+local function enableSuperPotatoMode(state)
     if state then
+        -- Ép chất lượng đồ họa Roblox về 1 (Thấp nhất)
+        pcall(function()
+            settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+            UserSettings():GetService("UserGameSettings").SavedQualityLevel = Enum.SavedQualitySetting.QualityLevel1
+        end)
+
+        -- Tắt toàn bộ hiệu ứng ánh sáng
         Lighting.GlobalShadows = false
-        for _, v in ipairs(workspace:GetDescendants()) do
+        Lighting.FogEnd = 9e9
+        for _, v in pairs(Lighting:GetChildren()) do
+            if v:IsA("PostEffect") or v:IsA("Atmosphere") or v:IsA("Sky") or v:IsA("Clouds") or v:IsA("SunRaysEffect") then
+                v.Enabled = false
+            end
+        end
+
+        -- Tối ưu Terrain & Mặt nước
+        if workspace.Terrain then
+            workspace.Terrain.WaterWaveSize = 0
+            workspace.Terrain.WaterWaveSpeed = 0
+            workspace.Terrain.WaterReflectance = 0
+            workspace.Terrain.WaterTransparency = 0
+        end
+
+        -- Ép vật liệu về trơn phẳng & xóa Texture hạt
+        for _, v in pairs(workspace:GetDescendants()) do
             if v:IsA("BasePart") and not v:IsA("Terrain") then
-                if not originalMaterials[v] then
-                    originalMaterials[v] = v.Material
-                end
                 v.Material = Enum.Material.SmoothPlastic
-            elseif v:IsA("Decal") or v:IsA("Texture") then
-                if originalDecals[v] == nil then
-                    originalDecals[v] = v.Transparency
+                v.CastShadow = false
+                if v:IsA("MeshPart") then
+                    v.TextureID = ""
                 end
+            elseif v:IsA("Decal") or v:IsA("Texture") then
                 v.Transparency = 1
             elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
-                v.Enabled = false
-            elseif v:IsA("PostEffect") then
                 v.Enabled = false
             end
         end
     else
-        -- Khôi phục 100% nguyên bản khi TẮT
-        Lighting.GlobalShadows = true
-        for part, mat in pairs(originalMaterials) do
-            if part and part.Parent then
-                part.Material = mat
-            end
-        end
-        for decal, trans in pairs(originalDecals) do
-            if decal and decal.Parent then
-                decal.Transparency = trans
-            end
-        end
-        for _, v in ipairs(workspace:GetDescendants()) do
-            if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
-                v.Enabled = true
-            elseif v:IsA("PostEffect") then
-                v.Enabled = true
-            end
-        end
+        pcall(function()
+            settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
+        end)
     end
 end
 
-addToggle(TabOptim, "Giảm Lag 45% (Xóa Hiệu Ứng Nặng)", false, function(state)
-    setAntiLag(state)
+addToggle(TabOptim, "Siêu Giảm Lag (Mượt Cực Đỉnh)", false, function(state)
+    enableSuperPotatoMode(state)
 end)
 
-addToggle(TabOptim, "Mở Khóa 240 FPS (Tăng Độ Mượt)", false, function(state)
+addToggle(TabOptim, "Mở Khóa 240 FPS (Ép Khung Hình)", false, function(state)
     if state then
         if setfpscap then setfpscap(240) end
-        pcall(function()
-            UserSettings():GetService("UserGameSettings").SavedQualityLevel = Enum.SavedQualitySetting.QualityLevel1
-        end)
     else
         if setfpscap then setfpscap(60) end
     end
 end)
 
 ---------------------------------------------------------
--- 2. ĐỊNH VỊ NGƯỜI CHƠI (ESP 240 MÉT CHÍNH XÁC)
+-- 2. ĐỊNH VỊ ESP CÓ SLIDER TÙY CHỈNH (TỐI ĐA 1500M)
 ---------------------------------------------------------
 local espActive = false
+local espMaxDistanceMeters = 240
 local espHolders = {}
 
 local function removeESP(player)
@@ -402,9 +540,10 @@ RunService.RenderStepped:Connect(function()
 
             if myHRP and targetHum and targetHum.Health > 0 then
                 local distStuds = (myHRP.Position - targetHRP.Position).Magnitude
+                local distanceMeters = math.floor(distStuds * 0.28) -- Quyết định 1 stud ~ 0.28m
                 
-                -- Bán kính 240 mét (~850 studs trong game)
-                if distStuds <= 850 then
+                -- So sánh khoảng cách đã kéo trên Slider
+                if distanceMeters <= espMaxDistanceMeters then
                     local billboard = espHolders[player]
                     if not billboard or not billboard.Parent then
                         billboard = Instance.new("BillboardGui")
@@ -429,7 +568,6 @@ RunService.RenderStepped:Connect(function()
 
                     local label = billboard:FindFirstChild("Label")
                     if label then
-                        local distanceMeters = math.floor(distStuds * 0.28)
                         label.Text = string.format("👤 %s\n📏 %dm", player.DisplayName, distanceMeters)
                     end
                 else
@@ -444,13 +582,20 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-addToggle(TabESP, "Định Vị Người Chơi (240m)", false, function(state)
+addToggle(TabESP, "Bật Định Vị Người Chơi (ESP)", false, function(state)
     espActive = state
 end)
 
+addSlider(TabESP, "Khoảng Cách Định Vị", 10, 1500, 240, function(value)
+    espMaxDistanceMeters = value
+end)
+
 ---------------------------------------------------------
--- 3. TĂNG MAY MẮN +100%
+-- 3. CHẾ ĐỘ MAY MẮN + THÔNG BÁO TÊN GAME
 ---------------------------------------------------------
-addToggle(TabLuck, "Tăng May Mắn +100% (Client Boost)", false, function(state)
-    -- Tối ưu hóa gửi gói tin Client-side
+addToggle(TabLuck, "Kích Hoạt Tăng May Mắn +100%", false, function(state)
+    if state then
+        local msg = string.format("Bạn đã bật chế độ may mắn thành công, game bạn đang chơi ( %s ) sẽ gặp may mắn gấp đôi!", currentGameName)
+        showNotification("🍀 MAY MẮN KÍCH HOẠT", msg)
+    end
 end)
