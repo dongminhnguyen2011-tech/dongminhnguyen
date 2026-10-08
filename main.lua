@@ -1,7 +1,8 @@
--- LocalScript: ĐỒNG M NGUYÊN [ V1.0 ] - Smooth & Reversible Ultra Optimizer
+-- LocalScript: ĐỒNG M NGUYÊN [ V1.0 ] - Ultra 1000 FPS & Realtime FPS Display
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -10,7 +11,7 @@ local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 ---------------------------------------------------------
--- 1. TỰ ĐỘNG QUÉT TÊN GAME ĐANG CHƠI
+-- 1. TỰ ĐỘNG QUÉT TÊN GAME
 ---------------------------------------------------------
 local currentGameName = "Đang quét..."
 pcall(function()
@@ -22,34 +23,23 @@ pcall(function()
     end
 end)
 
----------------------------------------------------------
--- 2. BẢNG BỘ NHỚ LƯU TRẠNG THÁI GỐC (ĐỂ KHÔI PHỤC KHI TẮT)
----------------------------------------------------------
-local OriginalState = {
-    Lighting = {},
-    Parts = {},
-    Decals = {},
-    Effects = {}
-}
-
 local Config = {
     LagReduced = false,
     FPSBoosted = false
 }
 
 ---------------------------------------------------------
--- 3. KHỞI TẠO GIAO DIỆN CHÍNH (SCREEN GUI)
+-- 2. KHỞI TẠO GIAO DIỆN CHÍNH
 ---------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "DongMNnguyen_SmoothHub"
+ScreenGui.Name = "DongMNnguyen_FPS_Counter_Hub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
--- Main Frame
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 340, 0, 210)
-MainFrame.Position = UDim2.new(0.5, -170, 0.4, -105)
+MainFrame.Size = UDim2.new(0, 340, 0, 245)
+MainFrame.Position = UDim2.new(0.5, -170, 0.4, -122)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 18, 26)
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
@@ -65,7 +55,7 @@ MainStroke.Color = Color3.fromRGB(0, 200, 255)
 MainStroke.Thickness = 1.5
 MainStroke.Parent = MainFrame
 
--- Header Bar
+-- Header
 local Header = Instance.new("Frame")
 Header.Size = UDim2.new(1, 0, 0, 36)
 Header.BackgroundColor3 = Color3.fromRGB(22, 27, 38)
@@ -87,7 +77,6 @@ TitleLabel.TextSize = 15
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 TitleLabel.Parent = Header
 
--- Nút Đóng (X)
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0, 24, 0, 24)
 CloseBtn.Position = UDim2.new(1, -30, 0, 6)
@@ -102,10 +91,13 @@ local CloseCorner = Instance.new("UICorner")
 CloseCorner.CornerRadius = UDim.new(0, 6)
 CloseCorner.Parent = CloseBtn
 
--- Khung Hiển Thị Tên Game Đang Chơi
+---------------------------------------------------------
+-- 3. KHUNG HIỂN THỊ TÊN GAME & KHUNG ĐO FPS THỜI GIAN THỰC
+---------------------------------------------------------
+-- Khung Tên Game
 local GameLabelFrame = Instance.new("Frame")
 GameLabelFrame.Size = UDim2.new(0.9, 0, 0, 26)
-GameLabelFrame.Position = UDim2.new(0.05, 0, 0.22, 0)
+GameLabelFrame.Position = UDim2.new(0.05, 0, 0.18, 0)
 GameLabelFrame.BackgroundColor3 = Color3.fromRGB(24, 30, 42)
 GameLabelFrame.Parent = MainFrame
 
@@ -124,7 +116,58 @@ GameText.TextSize = 12
 GameText.TextXAlignment = Enum.TextXAlignment.Left
 GameText.Parent = GameLabelFrame
 
--- Nút Tròn ĐMN (Nổi bật khi ẩn Menu)
+-- Khung Đo FPS Realtime
+local FPSFrame = Instance.new("Frame")
+FPSFrame.Size = UDim2.new(0.9, 0, 0, 28)
+FPSFrame.Position = UDim2.new(0.05, 0, 0.31, 0)
+FPSFrame.BackgroundColor3 = Color3.fromRGB(20, 28, 40)
+FPSFrame.Parent = MainFrame
+
+local FPSCorner = Instance.new("UICorner")
+FPSCorner.CornerRadius = UDim.new(0, 6)
+FPSCorner.Parent = FPSFrame
+
+local FPSStroke = Instance.new("UIStroke")
+FPSStroke.Color = Color3.fromRGB(0, 180, 255)
+FPSStroke.Thickness = 1
+FPSStroke.Parent = FPSFrame
+
+local FPSText = Instance.new("TextLabel")
+FPSText.Size = UDim2.new(1, 0, 1, 0)
+FPSText.BackgroundTransparency = 1
+FPSText.Text = "⚡ TỐC ĐỘ GAME: 0 FPS"
+FPSText.TextColor3 = Color3.fromRGB(0, 255, 150)
+FPSText.Font = Enum.Font.SourceSansBold
+FPSText.TextSize = 13
+FPSText.Parent = FPSFrame
+
+-- Logic Tính Khung Hình FPS Chính Xác
+local frameCount = 0
+local lastTime = os.clock()
+
+RunService.RenderStepped:Connect(function()
+    frameCount = frameCount + 1
+    local currentTime = os.clock()
+    if currentTime - lastTime >= 1 then
+        local fps = math.floor(frameCount / (currentTime - lastTime))
+        FPSText.Text = "⚡ TỐC ĐỘ GAME: " .. tostring(fps) .. " FPS"
+        
+        if fps >= 60 then
+            FPSText.TextColor3 = Color3.fromRGB(0, 255, 150) -- Xanh lá (Mượt)
+        elseif fps >= 30 then
+            FPSText.TextColor3 = Color3.fromRGB(255, 200, 0) -- Vàng (Trung bình)
+        else
+            FPSText.TextColor3 = Color3.fromRGB(255, 60, 60)  -- Đỏ (Lag)
+        end
+        
+        frameCount = 0
+        lastTime = currentTime
+    end
+end)
+
+---------------------------------------------------------
+-- 4. NÚT TRÒN ĐMN (HIỆN KHI ẨN MENU)
+---------------------------------------------------------
 local CircleBtn = Instance.new("TextButton")
 CircleBtn.Name = "CircleBtn_DMN"
 CircleBtn.Size = UDim2.new(0, 50, 0, 50)
@@ -147,10 +190,9 @@ CircleStroke.Color = Color3.fromRGB(0, 200, 255)
 CircleStroke.Thickness = 2
 CircleStroke.Parent = CircleBtn
 
--- Khung chứa các nút tính năng
 local Container = Instance.new("Frame")
-Container.Size = UDim2.new(0.9, 0, 0.58, 0)
-Container.Position = UDim2.new(0.05, 0, 0.38, 0)
+Container.Size = UDim2.new(0.9, 0, 0.52, 0)
+Container.Position = UDim2.new(0.05, 0, 0.45, 0)
 Container.BackgroundTransparency = 1
 Container.Parent = MainFrame
 
@@ -159,7 +201,6 @@ UIList.SortOrder = Enum.SortOrder.LayoutOrder
 UIList.Padding = UDim.new(0, 8)
 UIList.Parent = Container
 
--- Hàm Tạo Nút Bật/Tắt Mượt Mà
 local function createToggleButton(title, defaultState, callback)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, 0, 0, 38)
@@ -186,83 +227,114 @@ local function createToggleButton(title, defaultState, callback)
 end
 
 ---------------------------------------------------------
--- CHỨC NĂNG 1: GIẢM LAG (BẬT LÀ GIẢM NGAY, TẮT KHÔI PHỤC GỐC)
+-- CHỨC NĂNG 1: GIẢM LAG (XÓA & KHÔI PHỤC 100% ĐỒ HỌA)
 ---------------------------------------------------------
-createToggleButton("⚡ Giảm lag (Tắt/Bật khôi phục 100%)", Config.LagReduced, function(val)
+createToggleButton("⚡ Giảm lag (Bật xóa / Tắt khôi phục 100%)", Config.LagReduced, function(val)
     Config.LagReduced = val
     if val then
-        -- LƯU LẠI CÁC TRẠNG THÁI GỐC CỦA MAP
-        OriginalState.Lighting.GlobalShadows = Lighting.GlobalShadows
-        OriginalState.Lighting.FogEnd = Lighting.FogEnd
-        
+        if Lighting:GetAttribute("DMN_Shadows") == nil then
+            Lighting:SetAttribute("DMN_Shadows", Lighting.GlobalShadows)
+            Lighting:SetAttribute("DMN_FogEnd", Lighting.FogEnd)
+        end
         Lighting.GlobalShadows = false
         Lighting.FogEnd = 9e9
-        
+
+        for _, effect in pairs(Lighting:GetChildren()) do
+            if effect:IsA("PostEffect") or effect:IsA("Atmosphere") then
+                if effect:GetAttribute("DMN_Enabled") == nil then
+                    effect:SetAttribute("DMN_Enabled", effect.Enabled)
+                end
+                effect.Enabled = false
+            end
+        end
+
         for _, obj in pairs(Workspace:GetDescendants()) do
             if obj:IsA("BasePart") then
-                OriginalState.Parts[obj] = {Material = obj.Material, CastShadow = obj.CastShadow}
+                if obj:GetAttribute("DMN_Mat") == nil then
+                    obj:SetAttribute("DMN_Mat", obj.Material.Name)
+                    obj:SetAttribute("DMN_Shadow", obj.CastShadow)
+                end
                 obj.Material = Enum.Material.SmoothPlastic
                 obj.CastShadow = false
             elseif obj:IsA("Decal") or obj:IsA("Texture") then
-                OriginalState.Decals[obj] = obj.Transparency
+                if obj:GetAttribute("DMN_Trans") == nil then
+                    obj:SetAttribute("DMN_Trans", obj.Transparency)
+                end
                 obj.Transparency = 1
-            elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") then
-                OriginalState.Effects[obj] = obj.Enabled
+            elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") or obj:IsA("Beam") then
+                if obj:GetAttribute("DMN_Enabled") == nil then
+                    obj:SetAttribute("DMN_Enabled", obj.Enabled)
+                end
                 obj.Enabled = false
             end
         end
     else
-        -- KHÔI PHỤC LẠI NGUYÊN BẢN BAN ĐẦU KHI TẮT
-        if OriginalState.Lighting.GlobalShadows ~= nil then
-            Lighting.GlobalShadows = OriginalState.Lighting.GlobalShadows
-            Lighting.FogEnd = OriginalState.Lighting.FogEnd
+        if Lighting:GetAttribute("DMN_Shadows") ~= nil then
+            Lighting.GlobalShadows = Lighting:GetAttribute("DMN_Shadows")
+            Lighting.FogEnd = Lighting:GetAttribute("DMN_FogEnd")
+            Lighting:SetAttribute("DMN_Shadows", nil)
+            Lighting:SetAttribute("DMN_FogEnd", nil)
         end
-        
-        for part, props in pairs(OriginalState.Parts) do
-            if part and part.Parent then
-                part.Material = props.Material
-                part.CastShadow = props.CastShadow
+
+        for _, effect in pairs(Lighting:GetChildren()) do
+            if effect:IsA("PostEffect") or effect:IsA("Atmosphere") then
+                local origState = effect:GetAttribute("DMN_Enabled")
+                if origState ~= nil then
+                    effect.Enabled = origState
+                    effect:SetAttribute("DMN_Enabled", nil)
+                end
             end
         end
-        
-        for decal, trans in pairs(OriginalState.Decals) do
-            if decal and decal.Parent then
-                decal.Transparency = trans
+
+        for _, obj in pairs(Workspace:GetDescendants()) do
+            if obj:IsA("BasePart") then
+                local origMat = obj:GetAttribute("DMN_Mat")
+                local origShadow = obj:GetAttribute("DMN_Shadow")
+                if origMat then
+                    pcall(function() obj.Material = Enum.Material[origMat] end)
+                    obj:SetAttribute("DMN_Mat", nil)
+                end
+                if origShadow ~= nil then
+                    obj.CastShadow = origShadow
+                    obj:SetAttribute("DMN_Shadow", nil)
+                end
+            elseif obj:IsA("Decal") or obj:IsA("Texture") then
+                local origTrans = obj:GetAttribute("DMN_Trans")
+                if origTrans ~= nil then
+                    obj.Transparency = origTrans
+                    obj:SetAttribute("DMN_Trans", nil)
+                end
+            elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") or obj:IsA("Beam") then
+                local origEnabled = obj:GetAttribute("DMN_Enabled")
+                if origEnabled ~= nil then
+                    obj.Enabled = origEnabled
+                    obj:SetAttribute("DMN_Enabled", nil)
+                end
             end
         end
-        
-        for effect, enabled in pairs(OriginalState.Effects) do
-            if effect and effect.Parent then
-                effect.Enabled = enabled
-            end
-        end
-        
-        -- Dọn dẹp cache
-        OriginalState.Parts = {}
-        OriginalState.Decals = {}
-        OriginalState.Effects = {}
-        OriginalState.Lighting = {}
     end
 end)
 
 ---------------------------------------------------------
--- CHỨC NĂNG 2: TĂNG 300 FPS & ÉP KHUNG HÌNH KHÔNG ĐỘ TRỄ
+-- CHỨC NĂNG 2: TĂNG 1000 FPS CỰC HẠN & TRIỆT CẢM ĐỘ TRỄ
 ---------------------------------------------------------
-createToggleButton("🚀 Tăng 300 FPS & Ép mượt không độ trễ", Config.FPSBoosted, function(val)
+createToggleButton("🚀 Tăng 1000 FPS Cực Hạn (Siêu Mượt)", Config.FPSBoosted, function(val)
     Config.FPSBoosted = val
     if val then
-        if setfpscap then setfpscap(300) end
+        if setfpscap then setfpscap(1000) end
         settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
         settings().Physics.PhysicsEnvironmentalThrottle = Enum.EnviromentalPhysicsThrottle.Disabled
+        workspace.InterpolationThrottling = Enum.InterpolationThrottling.Disabled
     else
         if setfpscap then setfpscap(60) end
         settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
         settings().Physics.PhysicsEnvironmentalThrottle = Enum.EnviromentalPhysicsThrottle.Default
+        workspace.InterpolationThrottling = Enum.InterpolationThrottling.Default
     end
 end)
 
 ---------------------------------------------------------
--- TWEEN MỞ / ĐÓNG MENU & DI CHUYỂN
+-- DI CHUYỂN & CHUYỂN ĐỔI ẨN/HIỆN
 ---------------------------------------------------------
 local function makeDraggable(guiObject)
     local dragging, dragInput, dragStart, startPos
@@ -296,14 +368,13 @@ local function toggleUI()
     isTransitioning = true
 
     if MainFrame.Visible then
-        -- Hiệu ứng thu nhỏ Menu
         local tween = TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
             Size = UDim2.new(0, 0, 0, 0)
         })
         tween:Play()
         tween.Completed:Connect(function()
             MainFrame.Visible = false
-            MainFrame.Size = UDim2.new(0, 340, 0, 210)
+            MainFrame.Size = UDim2.new(0, 340, 0, 245)
             CircleBtn.Visible = true
             CircleBtn.Size = UDim2.new(0, 0, 0, 0)
             TweenService:Create(CircleBtn, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
@@ -312,12 +383,11 @@ local function toggleUI()
             isTransitioning = false
         end)
     else
-        -- Hiệu ứng phóng to Menu
         CircleBtn.Visible = false
         MainFrame.Visible = true
         MainFrame.Size = UDim2.new(0, 0, 0, 0)
         local tween = TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 340, 0, 210)
+            Size = UDim2.new(0, 340, 0, 245)
         })
         tween:Play()
         tween.Completed:Connect(function()
