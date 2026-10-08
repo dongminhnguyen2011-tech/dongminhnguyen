@@ -1,27 +1,35 @@
--- LocalScript: Full UI Hub + Auto Farm System
+-- LocalScript: Framework UI Hub VIP
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
-local VirtualUser = game:GetService("VirtualUser")
+local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 ---------------------------------------------------------
--- 1. KHỞI TẠO GIAO DIỆN (UI CREATION)
+-- CẤU HÌNH HỆ THỐNG (SETTINGS)
+---------------------------------------------------------
+local Config = {
+    AutoFarm = false,
+    SelectedWeapon = "Melee", -- "Melee", "Sword", "Fruit"
+    FarmSpeed = 300,
+    DistanceOffset = Vector3.new(0, 7, 0) -- Cao hơn quái 7 studs
+}
+
+---------------------------------------------------------
+-- TẠO GIAO DIỆN VIP (UI BUILDER)
 ---------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "AutoFarmHubUI"
+ScreenGui.Name = "VIP_Hub_UI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
--- Khung chính (Main Menu)
+-- Khung chính
 local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 320, 0, 220)
-MainFrame.Position = UDim2.new(0.5, -160, 0.4, -110)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+MainFrame.Size = UDim2.new(0, 400, 0, 260)
+MainFrame.Position = UDim2.new(0.5, -200, 0.4, -130)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Parent = ScreenGui
@@ -30,82 +38,75 @@ local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 10)
 MainCorner.Parent = MainFrame
 
-local TitleLabel = Instance.new("TextLabel")
-TitleLabel.Size = UDim2.new(1, -40, 0, 35)
-TitleLabel.Position = UDim2.new(0, 10, 0, 0)
-TitleLabel.BackgroundTransparency = 1
-TitleLabel.Text = "AUTO FARM HUB [Phím X để ẩn/hiện]"
-TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleLabel.TextSize = 14
-TitleLabel.Font = Enum.Font.SourceSansBold
-TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-TitleLabel.Parent = MainFrame
+-- Thanh Tiêu Đề (Header Bar)
+local Header = Instance.new("Frame")
+Header.Size = UDim2.new(1, 0, 0, 35)
+Header.BackgroundColor3 = Color3.fromRGB(30, 30, 42)
+Header.BorderSizePixel = 0
+Header.Parent = MainFrame
 
--- Nút đóng GUI (Dấu X trên giao diện)
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, 10)
+HeaderCorner.Parent = Header
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -50, 1, 0)
+Title.Position = UDim2.new(0, 15, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "VIP HUB [Nhấn phím X để Ẩn/Hiện]"
+Title.TextColor3 = Color3.fromRGB(0, 220, 255)
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 14
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Header
+
+-- Nút đóng (X)
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0, 25, 0, 25)
 CloseBtn.Position = UDim2.new(1, -30, 0, 5)
-CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
 CloseBtn.Text = "X"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseBtn.Font = Enum.Font.SourceSansBold
-CloseBtn.TextSize = 14
-CloseBtn.Parent = MainFrame
+CloseBtn.TextSize = 12
+CloseBtn.Parent = Header
 
 local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0, 5)
+CloseCorner.CornerRadius = UDim.new(0, 6)
 CloseCorner.Parent = CloseBtn
 
--- Nút Tròn Nhỏ (Floating Circle Button)
+-- Nút tròn nổi (Floating Circle Button)
 local CircleBtn = Instance.new("ImageButton")
-CircleBtn.Name = "CircleToggleBtn"
 CircleBtn.Size = UDim2.new(0, 50, 0, 50)
-CircleBtn.Position = UDim2.new(0.05, 0, 0.2, 0)
-CircleBtn.BackgroundColor3 = Color3.fromRGB(35, 130, 230)
+CircleBtn.Position = UDim2.new(0.02, 0, 0.2, 0)
+CircleBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 CircleBtn.Visible = false
 CircleBtn.Active = true
 CircleBtn.Parent = ScreenGui
 
 local CircleCorner = Instance.new("UICorner")
-CircleCorner.CornerRadius = UDim.new(1, 0) -- Biến khung thành hình tròn
+CircleCorner.CornerRadius = UDim.new(1, 0)
 CircleCorner.Parent = CircleBtn
 
 local CircleText = Instance.new("TextLabel")
 CircleText.Size = UDim2.new(1, 0, 1, 0)
 CircleText.BackgroundTransparency = 1
-CircleText.Text = "HUB"
+CircleText.Text = "VIP"
 CircleText.TextColor3 = Color3.fromRGB(255, 255, 255)
 CircleText.Font = Enum.Font.SourceSansBold
 CircleText.TextSize = 16
 CircleText.Parent = CircleBtn
 
--- Nút Bật/Tắt Auto Farm trong Menu
-local FarmBtn = Instance.new("TextButton")
-FarmBtn.Size = UDim2.new(0.9, 0, 0, 40)
-FarmBtn.Position = UDim2.new(0.05, 0, 0.3, 0)
-FarmBtn.BackgroundColor3 = Color3.fromRGB(40, 180, 80)
-FarmBtn.Text = "Auto Farm: OFF"
-FarmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-FarmBtn.Font = Enum.Font.SourceSansBold
-FarmBtn.TextSize = 16
-FarmBtn.Parent = MainFrame
-
-local FarmCorner = Instance.new("UICorner")
-FarmCorner.CornerRadius = UDim.new(0, 6)
-FarmCorner.Parent = FarmBtn
-
 ---------------------------------------------------------
--- 2. XỬ LÝ KÉO RÊ GIAO DIỆN (SMOOTH DRAGGABLE)
+-- KÉO RÊ GIAO DIỆN (DRAGGABLE LOGIC)
 ---------------------------------------------------------
 local function makeDraggable(guiObject)
     local dragging, dragInput, dragStart, startPos
-
     guiObject.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
             startPos = guiObject.Position
-
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
                     dragging = false
@@ -113,13 +114,11 @@ local function makeDraggable(guiObject)
             end)
         end
     end)
-
     guiObject.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             dragInput = input
         end
     end)
-
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             local delta = input.Position - dragStart
@@ -135,17 +134,15 @@ makeDraggable(MainFrame)
 makeDraggable(CircleBtn)
 
 ---------------------------------------------------------
--- 3. XỬ LÝ BẬT/ẨN MENU (KEYBIND 'X' & TOGGLE BUTTON)
+-- ẨN / HIỆN GIAO DIỆN
 ---------------------------------------------------------
 local isMenuOpen = true
-
 local function toggleUI()
     isMenuOpen = not isMenuOpen
     MainFrame.Visible = isMenuOpen
     CircleBtn.Visible = not isMenuOpen
 end
 
--- Nhấn nút X trên bàn phím để toggle
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if not gameProcessed and input.KeyCode == Enum.KeyCode.X then
         toggleUI()
@@ -156,95 +153,70 @@ CloseBtn.MouseButton1Click:Connect(toggleUI)
 CircleBtn.MouseButton1Click:Connect(toggleUI)
 
 ---------------------------------------------------------
--- 4. HỆ THỐNG AUTO FARM LEVEL & AUTO ATTACK
+-- KHU VỰC CÁC NÚT ĐIỀU KHIỂN (CONTROL PANEL)
 ---------------------------------------------------------
-local autoFarmEnabled = false
+-- Nút Auto Farm
+local FarmToggle = Instance.new("TextButton")
+FarmToggle.Size = UDim2.new(0.9, 0, 0, 45)
+FarmToggle.Position = UDim2.new(0.05, 0, 0.22, 0)
+FarmToggle.BackgroundColor3 = Color3.fromRGB(45, 160, 85)
+FarmToggle.Text = "Auto Farm Level: OFF"
+FarmToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+FarmToggle.Font = Enum.Font.SourceSansBold
+FarmToggle.TextSize = 16
+FarmToggle.Parent = MainFrame
 
--- Chống AFK Kick
-LocalPlayer.Idled:Connect(function()
-    VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-    task.wait(1)
-    VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-end)
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 8)
+ToggleCorner.Parent = FarmToggle
 
--- Hàm dịch chuyển nhân vật mượt mà
-local function tweenTo(targetCFrame, speed)
-    local char = LocalPlayer.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-    
-    local hrp = char.HumanoidRootPart
-    local distance = (hrp.Position - targetCFrame.Position).Magnitude
-    local time = distance / (speed or 250)
-    
-    local tweenInfo = TweenInfo.new(time, Enum.EasingStyle.Linear)
-    local tween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame})
-    tween:Play()
-    return tween
-end
-
--- Hàm tự động đánh quái
-local function autoAttack()
-    VirtualUser:CaptureController()
-    VirtualUser:ClickButton1(Vector2.new(0,0))
-end
-
--- Vòng lặp Farm Level
-task.spawn(function()
-    while true do
-        task.wait(0.1)
-        if autoFarmEnabled then
-            pcall(function()
-                local char = LocalPlayer.Character
-                if not char or not char:FindFirstChild("Humanoid") or char.Humanoid.Health <= 0 then return end
-                
-                -- 1. Tự động trang bị vũ khí (Melee/Tool)
-                for _, tool in pairs(LocalPlayer.Backpack:GetChildren()) do
-                    if tool:IsA("Tool") then
-                        char.Humanoid:EquipTool(tool)
-                        break
-                    end
-                end
-                
-                -- 2. Tìm quái vật gần nhất trong Workspace
-                local targetMob = nil
-                local shortestDistance = math.huge
-                
-                for _, mob in pairs(workspace:GetChildren()) do
-                    -- Bạn có thể thay đổi tên quái phù hợp với Game (VD: "Bandit", "Monkey",...)
-                    if mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and mob:FindFirstChild("HumanoidRootPart") and mob.Name ~= LocalPlayer.Name then
-                        local dist = (char.HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude
-                        if dist < shortestDistance then
-                            shortestDistance = dist
-                            targetMob = mob
-                        end
-                    end
-                end
-                
-                -- 3. Dịch chuyển đến quái và tấn công
-                if targetMob and targetMob:FindFirstChild("HumanoidRootPart") then
-                    -- Bay lên đỉnh đầu quái 5 studs để tránh bị quái đánh trúng
-                    local targetPos = targetMob.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0) * CFrame.Angles(math.rad(-90), 0, 0)
-                    
-                    if shortestDistance > 10 then
-                        tweenTo(targetPos, 300)
-                    else
-                        char.HumanoidRootPart.CFrame = targetPos
-                        autoAttack()
-                    end
-                end
-            end)
-        end
+FarmToggle.MouseButton1Click:Connect(function()
+    Config.AutoFarm = not Config.AutoFarm
+    if Config.AutoFarm then
+        FarmToggle.Text = "Auto Farm Level: ON"
+        FarmToggle.BackgroundColor3 = Color3.fromRGB(210, 55, 55)
+    else
+        FarmToggle.Text = "Auto Farm Level: OFF"
+        FarmToggle.BackgroundColor3 = Color3.fromRGB(45, 160, 85)
     end
 end)
 
--- Sự kiện nhấn nút Bật/Tắt Auto Farm
-FarmBtn.MouseButton1Click:Connect(function()
-    autoFarmEnabled = not autoFarmEnabled
-    if autoFarmEnabled then
-        FarmBtn.Text = "Auto Farm: ON"
-        FarmBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-    else
-        FarmBtn.Text = "Auto Farm: OFF"
-        FarmBtn.BackgroundColor3 = Color3.fromRGB(40, 180, 80)
+-- Nút chuyển đổi loại vũ khí
+local WeaponBtn = Instance.new("TextButton")
+WeaponBtn.Size = UDim2.new(0.9, 0, 0, 40)
+WeaponBtn.Position = UDim2.new(0.05, 0, 0.45, 0)
+WeaponBtn.BackgroundColor3 = Color3.fromRGB(40, 45, 60)
+WeaponBtn.Text = "Vũ khí ưu tiên: " .. Config.SelectedWeapon
+WeaponBtn.TextColor3 = Color3.fromRGB(200, 220, 255)
+WeaponBtn.Font = Enum.Font.SourceSans
+WeaponBtn.TextSize = 14
+WeaponBtn.Parent = MainFrame
+
+local WpCorner = Instance.new("UICorner")
+WpCorner.CornerRadius = UDim.new(0, 8)
+WpCorner.Parent = WeaponBtn
+
+local weaponsList = {"Melee", "Sword", "Fruit"}
+local currentWpIndex = 1
+
+WeaponBtn.MouseButton1Click:Connect(function()
+    currentWpIndex = (currentWpIndex % #weaponsList) + 1
+    Config.SelectedWeapon = weaponsList[currentWpIndex]
+    WeaponBtn.Text = "Vũ khí ưu tiên: " .. Config.SelectedWeapon
+end)
+
+---------------------------------------------------------
+-- CƠ CHẾ NOCLIP (XUYÊN TƯỜNG KHI AUTO FARM)
+---------------------------------------------------------
+RunService.Stepped:Connect(function()
+    if Config.AutoFarm then
+        local char = LocalPlayer.Character
+        if char then
+            for _, part in pairs(char:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
     end
 end)
