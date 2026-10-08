@@ -1,4 +1,4 @@
--- LocalScript: ĐỒNG M NGUYÊN [ V1.0 ] - PC Gaming Camera & Ultra FPS Engine
+-- LocalScript: ĐỒNG M NGUYÊN [ V2.0 ] - Screen Recorder & Anti-Lag Engine
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
@@ -11,7 +11,7 @@ local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 ---------------------------------------------------------
--- 1. QUÉT TÊN GAME & CẤU HÌNH
+-- 1. QUÉT TÊN GAME
 ---------------------------------------------------------
 local currentGameName = "Đang quét..."
 pcall(function()
@@ -23,27 +23,19 @@ pcall(function()
     end
 end)
 
-local Config = {
-    LagReduced = false,
-    FPSBoosted = false,
-    UltraPCMode = false
-}
-
-local childAddedConnection = nil
-
 ---------------------------------------------------------
 -- 2. GIAO DIỆN CHÍNH
 ---------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "DongMNnguyen_PCGaming_Hub"
+ScreenGui.Name = "DongMNnguyen_V2_Hub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 340, 0, 300)
-MainFrame.Position = UDim2.new(0.5, -170, 0.4, -150)
-MainFrame.BackgroundColor3 = Color3.fromRGB(12, 15, 22)
+MainFrame.Size = UDim2.new(0, 330, 0, 310)
+MainFrame.Position = UDim2.new(0.5, -165, 0.4, -155)
+MainFrame.BackgroundColor3 = Color3.fromRGB(10, 12, 18)
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
 MainFrame.Active = true
@@ -61,7 +53,7 @@ MainStroke.Parent = MainFrame
 -- Header
 local Header = Instance.new("Frame")
 Header.Size = UDim2.new(1, 0, 0, 36)
-Header.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
+Header.BackgroundColor3 = Color3.fromRGB(18, 22, 32)
 Header.BorderSizePixel = 0
 Header.Parent = MainFrame
 
@@ -73,10 +65,10 @@ local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Size = UDim2.new(0.7, 0, 1, 0)
 TitleLabel.Position = UDim2.new(0, 12, 0, 0)
 TitleLabel.BackgroundTransparency = 1
-TitleLabel.Text = "ĐỒNG M NGUYÊN [ V1.0 ]"
+TitleLabel.Text = "ĐỒNG M NGUYÊN [ V2.0 ]"
 TitleLabel.TextColor3 = Color3.fromRGB(0, 230, 255)
 TitleLabel.Font = Enum.Font.SourceSansBold
-TitleLabel.TextSize = 15
+TitleLabel.TextSize = 14
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 TitleLabel.Parent = Header
 
@@ -95,12 +87,12 @@ CloseCorner.CornerRadius = UDim.new(0, 6)
 CloseCorner.Parent = CloseBtn
 
 ---------------------------------------------------------
--- 3. KHUNG THÔNG TIN GAME & FPS
+-- 3. ĐO FPS & THÔNG TIN GAME
 ---------------------------------------------------------
 local GameLabelFrame = Instance.new("Frame")
-GameLabelFrame.Size = UDim2.new(0.9, 0, 0, 24)
-GameLabelFrame.Position = UDim2.new(0.05, 0, 0.14, 0)
-GameLabelFrame.BackgroundColor3 = Color3.fromRGB(20, 26, 38)
+GameLabelFrame.Size = UDim2.new(0.9, 0, 0, 22)
+GameLabelFrame.Position = UDim2.new(0.05, 0, 0.13, 0)
+GameLabelFrame.BackgroundColor3 = Color3.fromRGB(18, 24, 35)
 GameLabelFrame.Parent = MainFrame
 
 local GameLabelCorner = Instance.new("UICorner")
@@ -119,24 +111,19 @@ GameText.TextXAlignment = Enum.TextXAlignment.Left
 GameText.Parent = GameLabelFrame
 
 local FPSFrame = Instance.new("Frame")
-FPSFrame.Size = UDim2.new(0.9, 0, 0, 26)
-FPSFrame.Position = UDim2.new(0.05, 0, 0.23, 0)
-FPSFrame.BackgroundColor3 = Color3.fromRGB(16, 22, 32)
+FPSFrame.Size = UDim2.new(0.9, 0, 0, 24)
+FPSFrame.Position = UDim2.new(0.05, 0, 0.22, 0)
+FPSFrame.BackgroundColor3 = Color3.fromRGB(14, 18, 28)
 FPSFrame.Parent = MainFrame
 
 local FPSCorner = Instance.new("UICorner")
 FPSCorner.CornerRadius = UDim.new(0, 6)
 FPSCorner.Parent = FPSFrame
 
-local FPSStroke = Instance.new("UIStroke")
-FPSStroke.Color = Color3.fromRGB(0, 200, 255)
-FPSStroke.Thickness = 1
-FPSStroke.Parent = FPSFrame
-
 local FPSText = Instance.new("TextLabel")
 FPSText.Size = UDim2.new(1, 0, 1, 0)
 FPSText.BackgroundTransparency = 1
-FPSText.Text = "⚡ TỐC ĐỘ GAME: 0 FPS"
+FPSText.Text = "⚡ FPS THỜI GIAN THỰC: 0"
 FPSText.TextColor3 = Color3.fromRGB(0, 255, 150)
 FPSText.Font = Enum.Font.SourceSansBold
 FPSText.TextSize = 12
@@ -150,33 +137,31 @@ RunService.RenderStepped:Connect(function()
     local currentTime = os.clock()
     if currentTime - lastTime >= 1 then
         local fps = math.floor(frameCount / (currentTime - lastTime))
-        FPSText.Text = "⚡ TỐC ĐỘ GAME: " .. tostring(fps) .. " FPS"
-        
-        if fps >= 60 then
+        FPSText.Text = "⚡ FPS THỜI GIAN THỰC: " .. tostring(fps)
+        if fps >= 50 then
             FPSText.TextColor3 = Color3.fromRGB(0, 255, 150)
-        elseif fps >= 30 then
+        elseif fps >= 25 then
             FPSText.TextColor3 = Color3.fromRGB(255, 200, 0)
         else
             FPSText.TextColor3 = Color3.fromRGB(255, 60, 60)
         end
-        
         frameCount = 0
         lastTime = currentTime
     end
 end)
 
 ---------------------------------------------------------
--- 4. CONTAINER NÚT BẬT/TẮT
+-- 4. CONTAINER NÚT TÍNH NĂNG
 ---------------------------------------------------------
 local CircleBtn = Instance.new("TextButton")
 CircleBtn.Name = "CircleBtn_DMN"
-CircleBtn.Size = UDim2.new(0, 50, 0, 50)
+CircleBtn.Size = UDim2.new(0, 48, 0, 48)
 CircleBtn.Position = UDim2.new(0.03, 0, 0.25, 0)
-CircleBtn.BackgroundColor3 = Color3.fromRGB(15, 25, 40)
+CircleBtn.BackgroundColor3 = Color3.fromRGB(12, 20, 32)
 CircleBtn.Text = "ĐMN"
 CircleBtn.TextColor3 = Color3.fromRGB(0, 230, 255)
 CircleBtn.Font = Enum.Font.SourceSansBold
-CircleBtn.TextSize = 15
+CircleBtn.TextSize = 14
 CircleBtn.Visible = false
 CircleBtn.Active = true
 CircleBtn.Parent = ScreenGui
@@ -191,8 +176,8 @@ CircleStroke.Thickness = 2
 CircleStroke.Parent = CircleBtn
 
 local Container = Instance.new("Frame")
-Container.Size = UDim2.new(0.9, 0, 0.62, 0)
-Container.Position = UDim2.new(0.05, 0, 0.34, 0)
+Container.Size = UDim2.new(0.9, 0, 0.65, 0)
+Container.Position = UDim2.new(0.05, 0, 0.32, 0)
 Container.BackgroundTransparency = 1
 Container.Parent = MainFrame
 
@@ -201,11 +186,11 @@ UIList.SortOrder = Enum.SortOrder.LayoutOrder
 UIList.Padding = UDim.new(0, 6)
 UIList.Parent = Container
 
-local function createToggleButton(title, defaultState, callback)
+local function createToggleButton(title, callback)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 0, 36)
-    btn.BackgroundColor3 = defaultState and Color3.fromRGB(40, 180, 80) or Color3.fromRGB(30, 36, 50)
-    btn.Text = title .. (defaultState and ": ON" or ": OFF")
+    btn.Size = UDim2.new(1, 0, 0, 34)
+    btn.BackgroundColor3 = Color3.fromRGB(28, 34, 48)
+    btn.Text = title .. ": OFF"
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.SourceSansBold
     btn.TextSize = 11
@@ -215,10 +200,10 @@ local function createToggleButton(title, defaultState, callback)
     corner.CornerRadius = UDim.new(0, 6)
     corner.Parent = btn
     
-    local state = defaultState
+    local state = false
     btn.MouseButton1Click:Connect(function()
         state = not state
-        local targetColor = state and Color3.fromRGB(40, 180, 80) or Color3.fromRGB(30, 36, 50)
+        local targetColor = state and Color3.fromRGB(35, 170, 75) or Color3.fromRGB(28, 34, 48)
         TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
         btn.Text = title .. (state and ": ON" or ": OFF")
         callback(state)
@@ -227,90 +212,58 @@ local function createToggleButton(title, defaultState, callback)
 end
 
 ---------------------------------------------------------
--- CHỨC NĂNG SIÊU CẤP: CHẾ ĐỘ PC GAMING (XOAY CAM SIÊU MƯỢT)
+-- CHỨC NĂNG 1: SIÊU TỐI ƯU QUAY MÀN HÌNH (XÓA SẠCH ĐỒ HỌA)
 ---------------------------------------------------------
-local function cleanObject(obj)
-    if obj:IsA("BasePart") then
-        obj.Material = Enum.Material.SmoothPlastic
-        obj.CastShadow = false
-        obj.Reflectance = 0
-    elseif obj:IsA("Decal") or obj:IsA("Texture") then
-        obj.Transparency = 1
-    elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") or obj:IsA("Beam") or obj:IsA("Highlight") then
-        obj.Enabled = false
-    elseif obj:IsA("PostEffect") or obj:IsA("Atmosphere") or obj:IsA("SunRaysEffect") or obj:IsA("BlurEffect") or obj:IsA("BloomEffect") or obj:IsA("DepthOfFieldEffect") then
-        obj.Enabled = false
-    elseif obj:IsA("SurfaceAppearance") then
-        obj:Destroy()
-    end
-end
-
-createToggleButton("🖥️ Chế Độ PC Gaming (Xoay Cam Siêu Mượt)", Config.UltraPCMode, function(val)
-    Config.UltraPCMode = val
+createToggleButton("🎥 Siêu Tối Ưu Quay Cam (Chống Rít 100%)", function(val)
     if val then
-        -- 1. Ép Lighting & Terrain về mức siêu nhẹ
-        Lighting.GlobalShadows = false
-        Lighting.FogEnd = 9e9
-        Lighting.Brightness = 1
-        pcall(function() sethiddenproperty(Lighting, "Technology", Enum.Technology.Voxel) end)
+        pcall(function()
+            settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+            Lighting.GlobalShadows = false
+            Lighting.FogEnd = 9e9
+            Lighting.Brightness = 1
+            sethiddenproperty(Lighting, "Technology", Enum.Technology.Voxel)
+        end)
         
         if Workspace.Terrain then
             Workspace.Terrain.WaterWaveSize = 0
             Workspace.Terrain.WaterWaveSpeed = 0
             Workspace.Terrain.WaterReflectance = 0
             Workspace.Terrain.WaterTransparency = 0
-            pcall(function() setfieldproperty(Workspace.Terrain, "Decoration", false) end)
         end
-        
-        -- 2. Tối ưu hóa hệ thống Render & Phản hồi Camera
-        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+
+        for _, v in pairs(game:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.Material = Enum.Material.SmoothPlastic
+                v.CastShadow = false
+                v.Reflectance = 0
+            elseif v:IsA("Decal") or v:IsA("Texture") then
+                v.Transparency = 1
+            elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Highlight") then
+                v.Enabled = false
+            elseif v:IsA("PostEffect") or v:IsA("Atmosphere") or v:IsA("Clouds") then
+                v.Enabled = false
+            end
+        end
+    end
+end)
+
+---------------------------------------------------------
+-- CHỨC NĂNG 2: TẮT DỰNG HÌNH 3D (CHỈ DÙNG KHI MÁY QUÁ YẾU)
+---------------------------------------------------------
+createToggleButton("🖤 Tắt 3D Render (Màn Hình Đen - 100% Mượt)", function(val)
+    pcall(function()
+        RunService:Set3DRenderingEnabled(not val)
+    end)
+end)
+
+---------------------------------------------------------
+-- CHỨC NĂNG 3: MỞ KHÓA 1000 FPS & GIẢM TẢI CPU
+---------------------------------------------------------
+createToggleButton("🚀 Mở Khóa Max FPS (Giảm Tải CPU)", function(val)
+    if val then
+        if setfpscap then setfpscap(1000) end
         settings().Physics.PhysicsEnvironmentalThrottle = Enum.EnviromentalPhysicsThrottle.Disabled
         Workspace.InterpolationThrottling = Enum.InterpolationThrottling.Disabled
-        if setfpscap then setfpscap(1000) end
-
-        -- 3. Quét toàn bộ map
-        for _, obj in pairs(game:GetDescendants()) do
-            cleanObject(obj)
-        end
-        
-        -- 4. Tự động dọn dẹp vật thể/chiêu thức mới sinh ra để tránh rít khi xoay cam
-        childAddedConnection = Workspace.DescendantAdded:Connect(function(newObj)
-            if Config.UltraPCMode then
-                cleanObject(newObj)
-            end
-        end)
-    else
-        if childAddedConnection then
-            childAddedConnection:Disconnect()
-            childAddedConnection = nil
-        end
-        settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
-        settings().Physics.PhysicsEnvironmentalThrottle = Enum.EnviromentalPhysicsThrottle.Default
-        Workspace.InterpolationThrottling = Enum.InterpolationThrottling.Default
-        if setfpscap then setfpscap(60) end
-    end
-end)
-
----------------------------------------------------------
--- CHỨC NĂNG TĂNG FPS & GIẢM LAG THƯỜNG
----------------------------------------------------------
-createToggleButton("⚡ Giảm lag cơ bản (Xóa/Khôi phục đồ họa)", Config.LagReduced, function(val)
-    Config.LagReduced = val
-    if val then
-        Lighting.GlobalShadows = false
-        for _, obj in pairs(Workspace:GetDescendants()) do
-            if obj:IsA("BasePart") then
-                obj.Material = Enum.Material.SmoothPlastic
-                obj.CastShadow = false
-            end
-        end
-    end
-end)
-
-createToggleButton("🚀 Mở Khóa 1000 FPS Cực Hạn", Config.FPSBoosted, function(val)
-    Config.FPSBoosted = val
-    if val then
-        if setfpscap then setfpscap(1000) end
     else
         if setfpscap then setfpscap(60) end
     end
@@ -351,17 +304,17 @@ local function toggleUI()
     isTransitioning = true
 
     if MainFrame.Visible then
-        local tween = TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+        local tween = TweenService:Create(MainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
             Size = UDim2.new(0, 0, 0, 0)
         })
         tween:Play()
         tween.Completed:Connect(function()
             MainFrame.Visible = false
-            MainFrame.Size = UDim2.new(0, 340, 0, 300)
+            MainFrame.Size = UDim2.new(0, 330, 0, 310)
             CircleBtn.Visible = true
             CircleBtn.Size = UDim2.new(0, 0, 0, 0)
-            TweenService:Create(CircleBtn, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-                Size = UDim2.new(0, 50, 0, 50)
+            TweenService:Create(CircleBtn, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 48, 0, 48)
             }):Play()
             isTransitioning = false
         end)
@@ -369,8 +322,8 @@ local function toggleUI()
         CircleBtn.Visible = false
         MainFrame.Visible = true
         MainFrame.Size = UDim2.new(0, 0, 0, 0)
-        local tween = TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 340, 0, 290)
+        local tween = TweenService:Create(MainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Size = UDim2.new(0, 330, 0, 310)
         })
         tween:Play()
         tween.Completed:Connect(function()
